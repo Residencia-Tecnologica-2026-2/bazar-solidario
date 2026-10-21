@@ -1,0 +1,6 @@
+/home/esterfeliciano/worksapce/brecho/bazar-solidario/src/test/java/com/isac/bazar_solidario/BazarSolidarioApplicationTests.java
+/home/esterfeliciano/worksapce/brecho/bazar-solidario/src/test/java/com/isac/bazar_solidario/controller/AnuncioControllerTest.java
+/home/esterfeliciano/worksapce/brecho/bazar-solidario/src/test/java/com/isac/bazar_solidario/controller/AuthControllerTest.java
+/home/esterfeliciano/worksapce/brecho/bazar-solidario/src/test/java/com/isac/bazar_solidario/controller/TestSecurityConfig.java
+/home/esterfeliciano/worksapce/brecho/bazar-solidario/src/test/java/com/isac/bazar_solidario/service/AnuncioServiceTest.java
+/home/esterfeliciano/worksapce/brecho/bazar-solidario/src/test/java/com/isac/bazar_solidario/service/UsuarioServiceTest.java
