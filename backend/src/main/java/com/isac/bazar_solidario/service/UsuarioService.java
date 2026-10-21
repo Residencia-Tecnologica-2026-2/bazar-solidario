@@ -7,6 +7,9 @@ import com.isac.bazar_solidario.dto.UsuarioResponse;
 import com.isac.bazar_solidario.model.Role;
 import com.isac.bazar_solidario.model.Usuario;
 import com.isac.bazar_solidario.repository.UsuarioRepository;
+import com.isac.bazar_solidario.repository.LojaRepository;
+import com.isac.bazar_solidario.model.Loja;
+import org.springframework.transaction.annotation.Transactional;
 import com.isac.bazar_solidario.security.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,16 +22,20 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final LojaRepository lojaRepository;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
                           PasswordEncoder passwordEncoder,
-                          JwtService jwtService) {
+                          JwtService jwtService,
+                          LojaRepository lojaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.lojaRepository = lojaRepository;
     }
 
     /** Cadastra o usuário (senha criptografada) e já devolve um token. */
+    @Transactional
     public AuthResponse cadastrar(RegistroRequest req) {
         String email = req.email().trim().toLowerCase();
 
@@ -40,9 +47,13 @@ public class UsuarioService {
         usuario.setNome(req.nome().trim());
         usuario.setEmail(email);
         usuario.setSenha(passwordEncoder.encode(req.senha()));
-        usuario.setRole(Role.CLIENTE); // sempre CLIENTE, ninguém se cadastra como ADMIN
+        usuario.setRole(Role.LOJA); // cadastro público nunca permite criar ADMIN
         usuario = usuarioRepository.save(usuario);
-
+        Loja loja = new Loja();
+        loja.setUsuario(usuario);
+        loja.setNome(usuario.getNome());
+        loja.setWhatsapp(req.whatsapp());
+        lojaRepository.save(loja);
         return montarResposta(usuario);
     }
 
