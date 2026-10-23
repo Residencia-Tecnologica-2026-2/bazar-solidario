@@ -1,0 +1,50 @@
+/* Estrutura editorial original, nova paleta e assinatura ISAC. */
+:root{--mobile-width:480px}
+
+
+
+/* Pesos moderados e formas humanas: presenÃ§a urbana sem alterar a composiÃ§Ã£o. */
+.welcome h1,.page-heading h1{font-family:var(--font-sans);font-weight:680;letter-spacing:-.05em;line-height:1.08}
+.welcome h1 em{font-family:var(--font-serif);font-weight:600;font-style:italic}
+.section-title h2{font-family:var(--font-sans);font-weight:650;letter-spacing:-.045em}
+.hero-text h2{font-family:var(--font-serif);letter-spacing:-.035em}
+.product h3{font-weight:650}
+.welcome h1 em{color:var(--color-primary)}
+.hero-card{background:var(--color-primary)}
+.hero-card:after{background:linear-gradient(90deg,var(--color-primary) 42%,rgb(11 102 118 / .38) 68%,rgb(11 102 118 / .05))}
+.hero-text h2,.hero-text h2 em{font-weight:600}
+.hero-text .eyebrow,.hero-text h2 em{color:var(--brand-peach)}
+.hero-text>p:not(.eyebrow){color:var(--brand-cream)}
+.hero-text h2{color:var(--brand-cream)}
+.hero-card>img{object-position:48% center}
+.bottom-nav svg,.categories svg{transition:transform 180ms ease-out}
+.bottom-nav a.active svg{transform:translateY(-1px)}
+.categories a:active svg{transform:rotate(-5deg)}
+.btn.aqua{background:var(--brand-peach);color:var(--brand-brown);font-weight:650}
+.btn.aqua:hover{background:var(--brand-orange);color:var(--brand-brown)}
+.avatar{background:var(--color-lavender-tint);color:var(--brand-brown)}
+.favorite.selected{background:var(--brand-peach);color:var(--brand-brown)}
+.favorite,.product-bottom>button{min-width:44px;min-height:44px}
+.bottom-nav a.active>span{background:var(--brand-peach);color:var(--brand-brown)}
+.header-bag>span{background:var(--color-primary);color:var(--brand-cream)}
+.filter-icon{min-height:44px;min-width:44px}
+.chips button{min-height:44px}
+.toast{background:var(--brand-brown);color:var(--brand-cream)}
+@media(max-width:350px){main{padding-left:18px;padding-right:18px}.hero-text{padding-left:16px}.hero-text h2{font-size:29px}.brand-logo{width:112px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Identidade compacta aprovada: símbolo + escrita e categorias vivas. */
+.brand-logo{display:block;width:112px;height:72px;object-fit:contain;object-position:left center}
+.app-header{height:var(--header-h);padding-top:12px;padding-bottom:12px}.brand{min-height:72px}
+.categories>a>span{background:#1BC2B1;color:#004a58}
+.categories>a:nth-child(2)>span{background:#FF9B5A;color:#004a58}
+.categories>a:nth-child(3)>span{background:var(--brand-orange);color:#004a58}
+.categories>a:nth-child(4)>span{background:var(--brand-petrol);color:#fff}
+.categories>a:focus-visible>span{outline:2px solid var(--brand-petrol);outline-offset:3px}
+.chips button{background:#fff;border-color:var(--brand-petrol);color:var(--brand-petrol)}
+.chips button.active{background:var(--brand-petrol);color:#fff;border-color:var(--brand-petrol)}
+.size-tag{background:#FF9B5A;color:#40291E}
+.favorite.selected{background:var(--brand-orange);color:#40291E}
+.btn:hover{filter:brightness(.96)}
+
+.specs{border:0;gap:8px;background:transparent}.specs>div{border:0;border-radius:12px;background:#FF9B5A;padding:14px 5px;color:#40291E}.specs>div:nth-child(2){background:#1BC2B1;color:#004a58}.specs>div:nth-child(3){background:var(--brand-petrol);color:white}.specs span,.specs strong{color:inherit}.detail-badge{background:#FF9B5A;color:#40291E}

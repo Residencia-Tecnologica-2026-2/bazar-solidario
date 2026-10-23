@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="88" viewBox="0 0 280 88" role="img" aria-labelledby="title">
+<title id="title">ISAC Brechó</title>
+<g transform="translate(4 7) scale(1.7)" fill="none" stroke="#00667a" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round">
+<path d="M16.5 10.5a4 4 0 1 1 7 2.6L20 16v3M20 19 5.8 28.2c-1.6 1-1 3.3.9 3.3h26.6c1.9 0 2.5-2.3.9-3.3L20 19"/>
+<path d="M16 31.5h8" stroke="#f27b2d" stroke-width="2.7"/>
+</g>
+<g fill="#00667a" font-family="Arial, sans-serif">
+<text x="86" y="46" font-size="43" font-weight="900" letter-spacing="-1.2">ISAC</text>
+<text x="87" y="65" font-size="13" font-weight="700" letter-spacing="4">BRECHÓ</text>
+</g></svg>
