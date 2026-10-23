@@ -1,11 +1,34 @@
-# ISAC Brechó — Parte 2
+# ISAC Brechó - Front-end
 
-Continuação técnica da Parte 1. Inclui UsuarioService, CatalogoService, SacolaService e 34 testes. Acrescenta duas classes e 20 testes em relação aos 14 testes do cadastro da etapa inicial.
+Aplicativo mobile web em React, TypeScript e Vite, com marca ISAC, catálogo, filtros, favoritos, detalhes, sacola, encontros e cadastro.
 
-Executar na pasta frontend: npm ci, npm test, npm run test:evidencias, npm run build e npm run dev. Requer Node.js 22.18 ou superior.
+## Executar
 
-Esta versão foi organizada e executada em 18/10/2026; não representa publicação em semanas anteriores.
+Requer Node.js 22.18+. Na pasta `frontend`:
 
-## Contrato atual de cadastro
+```sh
+npm ci
+npm run dev
+```
 
-Nome: até 100 caracteres. Senha: 6 a 72 caracteres, conforme RegistroRequest do backend. O cliente aceita o envelope AuthResponse e mantém compatibilidade com a resposta pública anterior.
+Em outro terminal, execute o backend dentro de `backend/`, com Java 21 e PostgreSQL configurados: `./mvnw spring-boot:run` ou `.\mvnw.cmd spring-boot:run` no Windows.
+
+## Verificar
+
+```sh
+npm test
+npm run build
+npm run test:evidencias
+```
+
+São 36 testes de cadastro, catálogo e sacola. As evidências são geradas em `frontend/docs/evidencias/` e não são versionadas automaticamente.
+
+## Integração atual
+
+O Vite encaminha `/api` para `http://localhost:8080`, removendo o prefixo. Configure `API_PROXY_TARGET` e `VITE_API_BASE_URL` conforme `.env.example`. O cadastro usa `POST /usuarios`, aceita `AuthResponse.usuario` e descarta o token no retorno à interface. Nome: até 100 caracteres; senha: 6 a 72, conforme o backend. A tela ainda não inicia sessão JWT.
+
+Catálogo e checkout permanecem demonstrativos. Os endpoints novos do backend não estão automaticamente integrados às demais telas. Os testes HTTP usam respostas simuladas e não comprovam persistência no PostgreSQL.
+
+## Identidade e publicação
+
+Logo e variações em `public/brand/`, imagens do catálogo em `public/products/` e registros de marca em `docs/`. O build gera `dist/`. Na hospedagem, configure fallback das rotas para `index.html` e uma API acessível: o proxy local do Vite não acompanha os arquivos estáticos.
