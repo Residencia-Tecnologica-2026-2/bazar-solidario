@@ -68,6 +68,7 @@ class UsuarioServiceTest {
                 () -> service.cadastrar(new RegistroRequest("Ana", "ana@x.com", "123456", "5581999999999")));
         assertEquals(409, ex.getStatusCode().value());
         verify(repo, never()).save(any());
+        verify(lojaRepo, never()).save(any(Loja.class));
     }
 
     @Test
@@ -77,6 +78,17 @@ class UsuarioServiceTest {
 
         AuthResponse r = service.login(new LoginRequest("ana@x.com", "123456"));
         assertTrue(jwt.validar(r.token()).isPresent());
+    }
+
+    @Test
+    void loginNormalizaEmailAntesDeBuscarUsuario() {
+        Usuario u = new Usuario(1L, "Ana", "ana@x.com", encoder.encode("123456"), Role.LOJA);
+        when(repo.findByEmail("ana@x.com")).thenReturn(Optional.of(u));
+
+        AuthResponse r = service.login(new LoginRequest("  ANA@x.com  ", "123456"));
+
+        assertEquals("ana@x.com", jwt.validar(r.token()).orElseThrow().getSubject());
+        verify(repo).findByEmail("ana@x.com");
     }
 
     @Test

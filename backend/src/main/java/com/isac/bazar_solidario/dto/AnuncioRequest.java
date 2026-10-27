@@ -1,20 +1,10 @@
 package com.isac.bazar_solidario.dto;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.PositiveOrZero;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Corpo de POST /anuncios e PUT /anuncios/{id}.
- * Não existe campo de vendedor: o dono é sempre o usuário autenticado.
- */
 public record AnuncioRequest(
 
         @NotBlank(message = "O título é obrigatório")
@@ -26,7 +16,7 @@ public record AnuncioRequest(
 
         @NotNull(message = "O preço é obrigatório")
         @DecimalMin(value = "0.01", message = "O preço deve ser maior que zero")
-        @Digits(integer = 8, fraction = 2, message = "Preço inválido (máximo 8 inteiros e 2 decimais)")
+        @Digits(integer = 8, fraction = 2, message = "Preço inválido")
         BigDecimal preco,
 
         @NotNull(message = "O estoque é obrigatório")
@@ -36,13 +26,12 @@ public record AnuncioRequest(
         @NotNull(message = "A categoria é obrigatória")
         Long categoriaId,
 
-        /** Só URLs por enquanto (upload real fica para a segunda etapa). Opcional. */
-        @Size(max = 10, message = "No máximo 10 imagens por anúncio")
+        @NotNull(message = "Informe pelo menos 1 imagem")
+        @Size(min = 1, max = 10, message = "Informe entre 1 e 10 imagens por anúncio")
         List<
                 @NotBlank(message = "A URL da imagem não pode ser vazia")
                 @Size(max = 500, message = "A URL da imagem deve ter no máximo 500 caracteres")
-                @Pattern(regexp = "^https?://.+", message = "A URL da imagem deve começar com http:// ou https://")
+                @Pattern(regexp = "^(https?://.+|/uploads/.+)", message = "A URL da imagem deve começar com http://, https:// ou /uploads/")
                 String> imagens
 ) {
 }
-

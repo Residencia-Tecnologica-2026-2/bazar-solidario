@@ -8,6 +8,8 @@ import com.isac.bazar_solidario.model.Usuario;
 import com.isac.bazar_solidario.security.JwtService;
 import com.isac.bazar_solidario.service.AnuncioService;
 import com.isac.bazar_solidario.service.CategoriaService;
+import com.isac.bazar_solidario.service.LojaAutenticadaService;
+import com.isac.bazar_solidario.service.LojaAutenticadaService;
 import com.isac.bazar_solidario.service.UsuarioAutenticadoService;
 import com.isac.bazar_solidario.service.UsuarioService;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,7 @@ class AuthControllerTest {
     @MockitoBean UsuarioAutenticadoService autenticadoService;
     @MockitoBean AnuncioService anuncioService;
     @MockitoBean CategoriaService categoriaService;
+    @MockitoBean LojaAutenticadaService lojaAutenticada;
 
     @Test
     void cadastroEPublicoDevolveTokenEnaoVazaSenha() throws Exception {

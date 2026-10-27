@@ -31,9 +31,12 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // cadastro e login são públicos (é assim que se consegue o token)
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
                         // a ordem importa: /anuncios/* também casaria com /meus
                         .requestMatchers("/anuncios/meus").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/lojas/me").hasRole("LOJA")
                         .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
                         .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias", "/lojas", "/lojas/*").permitAll()

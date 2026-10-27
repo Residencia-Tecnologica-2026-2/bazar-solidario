@@ -1,14 +1,13 @@
 package com.isac.bazar_solidario.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "categorias")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @NoArgsConstructor
 public class Categoria {
 
     @Id
@@ -20,4 +19,10 @@ public class Categoria {
 
     @Column(length = 255)
     private String descricao;
+
+    public Categoria(Long id, String nome, String descricao) {
+        this.id = id;
+        this.nome = nome;
+        this.descricao = descricao;
+    }
 }

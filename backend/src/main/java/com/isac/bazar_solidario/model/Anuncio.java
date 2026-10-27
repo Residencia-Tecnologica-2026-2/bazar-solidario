@@ -41,8 +41,8 @@ public class Anuncio {
     private LocalDateTime dataCriacao;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "vendedor_id")
-    private Usuario vendedor;
+    @JoinColumn(name = "loja_id")
+    private Loja loja;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "categoria_id")
@@ -58,6 +58,7 @@ public class Anuncio {
 
     public void ativar() { this.status = StatusAnuncio.ATIVO; }
     public void desativar() { this.status = StatusAnuncio.INATIVO; }
+    public void marcarComoVendido() { this.status = StatusAnuncio.VENDIDO; }
     public void alterarEstoque(Integer novoEstoque) { this.estoque = novoEstoque; }
 
     public void adicionarImagem(Imagem imagem) {
@@ -65,7 +66,7 @@ public class Anuncio {
         this.imagens.add(imagem);
     }
 
-    public boolean pertenceA(Long usuarioId) {
-        return vendedor != null && vendedor.getId().equals(usuarioId);
+    public boolean pertenceA(Long lojaId) {
+        return loja != null && loja.possuiId(lojaId);
     }
 }
