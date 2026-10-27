@@ -34,6 +34,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
                         // a ordem importa: /anuncios/* também casaria com /meus
                         .requestMatchers("/anuncios/meus").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/lojas/me").hasRole("LOJA")
                         .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
                         .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias", "/lojas", "/lojas/*").permitAll()
