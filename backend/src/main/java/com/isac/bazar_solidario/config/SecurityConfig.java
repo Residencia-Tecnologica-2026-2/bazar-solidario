@@ -27,17 +27,21 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                // API com token: não guarda sessão no servidor
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // cadastro e login são públicos (é assim que se consegue o token)
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
-                        // a ordem importa: /anuncios/* também casaria com /meus
                         .requestMatchers("/anuncios/meus").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.GET, "/encontros", "/encontros/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/encontros").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.PUT, "/encontros/*").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.PATCH, "/encontros/*/cancelar").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias", "/lojas", "/lojas/*").permitAll()
                         .anyRequest().authenticated()
                 )
-                // sem token / token inválido -> 401 em JSON (em vez de 403 vazio)
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> {
                     res.setStatus(HttpStatus.UNAUTHORIZED.value());
                     res.setContentType(MediaType.APPLICATION_JSON_VALUE);

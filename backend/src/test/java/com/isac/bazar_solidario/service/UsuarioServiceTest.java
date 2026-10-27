@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 class UsuarioServiceTest {
 
     private UsuarioRepository repo;
+    private com.isac.bazar_solidario.repository.LojaRepository lojaRepo;
     private JwtService jwt;
     private BCryptPasswordEncoder encoder;
     private UsuarioService service;
@@ -29,8 +30,9 @@ class UsuarioServiceTest {
     void setUp() {
         repo = mock(UsuarioRepository.class);
         encoder = new BCryptPasswordEncoder();
+        lojaRepo = mock(com.isac.bazar_solidario.repository.LojaRepository.class);
         jwt = new JwtService("uma-chave-de-teste-com-mais-de-32-caracteres!!", 60_000);
-        service = new UsuarioService(repo, encoder, jwt);
+        service = new UsuarioService(repo, lojaRepo, encoder, jwt);
         when(repo.save(any(Usuario.class))).thenAnswer(i -> {
             Usuario u = i.getArgument(0);
             u.setId(1L);
@@ -40,7 +42,7 @@ class UsuarioServiceTest {
 
     @Test
     void cadastroCriptografaSenhaForcaClienteEDevolveToken() {
-        AuthResponse r = service.cadastrar(new RegistroRequest("Ana", "ANA@x.com", "123456"));
+        AuthResponse r = service.cadastrar(new RegistroRequest("Ana", "ANA@x.com", "123456", null));
 
         assertEquals("ana@x.com", r.usuario().email());
         assertEquals("CLIENTE", r.usuario().role());
@@ -57,7 +59,7 @@ class UsuarioServiceTest {
     void emailRepetidoRetorna409() {
         when(repo.existsByEmail("ana@x.com")).thenReturn(true);
         var ex = assertThrows(ResponseStatusException.class,
-                () -> service.cadastrar(new RegistroRequest("Ana", "ana@x.com", "123456")));
+                () -> service.cadastrar(new RegistroRequest("Ana", "ana@x.com", "123456", null)));
         assertEquals(409, ex.getStatusCode().value());
         verify(repo, never()).save(any());
     }
