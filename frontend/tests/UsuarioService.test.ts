@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { UsuarioService } from "../src/services/usuarios.ts";
 
-const dados = { nome: "Ana", email: "ana@example.com", senha: "exemplo123", whatsapp: "5581999999999" };
+const dados = { nome: "Ana", email: "ana@example.com", senha: "exemplo123" };
 /** Classe de teste: cada cenário usa uma instância independente. */
 export class UsuarioServiceTest {
   async ["valida campos antes de fazer qualquer requisição"]() {
@@ -14,8 +14,6 @@ export class UsuarioServiceTest {
       { ...dados, email: "a".repeat(250) + "@x.com" },
       { ...dados, senha: "12345" }, { ...dados, senha: "a".repeat(73) },
       { ...dados, senha: "        " },
-      { ...dados, whatsapp: "" }, { ...dados, whatsapp: "819999999" },
-      { ...dados, whatsapp: "5581999999999999" }, { ...dados, whatsapp: "5581abc999999" },
     ]) await assert.rejects(service.cadastrar(invalido));
     assert.equal(chamadas, 0);
   }
@@ -25,17 +23,14 @@ export class UsuarioServiceTest {
   }
   async ["aceita limites de senha e nome e retorna apenas dados públicos"]() {
     for (const tamanho of [6, 72]) {
-      const service = new UsuarioService("/api", async (_url, init) => {
-        assert.equal(JSON.parse(String(init?.body)).whatsapp, dados.whatsapp);
-        return Response.json({ id: 1, nome: "Ana", email: dados.email, role: "LOJA", senha: "hash" });
-      });
+      const service = new UsuarioService("/api", async () => Response.json({ id: 1, nome: "Ana", email: dados.email, role: "CLIENTE", senha: "hash" }));
       const result = await service.cadastrar({ ...dados, nome: "a".repeat(100), senha: "a".repeat(tamanho) });
       assert.equal(result.id, 1);
       assert.ok(!("senha" in result));
     }
   }
   async ["rejeita identificador inválido e perfil inesperado"]() {
-    for (const response of [{ id: -1, role: "LOJA" }, { id: 1.5, role: "LOJA" }, { id: 1, role: "ADMIN" }]) {
+    for (const response of [{ id: -1, role: "CLIENTE" }, { id: 1.5, role: "CLIENTE" }, { id: 1, role: "ADMIN" }]) {
       const service = new UsuarioService("/api", async () => Response.json({ ...dados, ...response }));
       await assert.rejects(service.cadastrar(dados), /resposta inesperada/);
     }

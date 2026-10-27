@@ -21,7 +21,6 @@ export function Cadastro() {
     const dados = new FormData(form);
     const nome = String(dados.get("nome") || "").trim();
     const senha = String(dados.get("senha") || "");
-    const whatsapp = String(dados.get("whatsapp") || "").trim();
     ocupado.current = true;
     setEnviando(true);
     setErro("");
@@ -30,7 +29,6 @@ export function Cadastro() {
         nome,
         email: String(dados.get("email") || ""),
         senha,
-        whatsapp,
       }, String(dados.get("confirmacao") || ""));
       form.reset();
       setNomeCriado(usuario.nome);
@@ -51,7 +49,7 @@ export function Cadastro() {
       <div className="page-heading">
         <p className="eyebrow">UM NOVO CICLO COMEÇA AQUI</p>
         <h1>Prazer em conhecer você.</h1>
-        <p>Cadastre seu brechó e faça parte do Bazar Solidário.</p>
+        <p>Crie seu cadastro e faça parte do Bazar Solidário.</p>
       </div>
       {nomeCriado ? (
         <div className="success" role="status">
@@ -95,24 +93,6 @@ export function Cadastro() {
               />
             </label>
             <label>
-              WhatsApp com DDI e DDD
-              <input
-                name="whatsapp"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel"
-                required
-                minLength={10}
-                maxLength={13}
-                pattern="[0-9]{10,13}"
-                placeholder="5581999999999"
-                aria-describedby="whatsapp-ajuda"
-              />
-            </label>
-            <p className="field-help" id="whatsapp-ajuda">
-              Digite somente números, incluindo DDI e DDD.
-            </p>
-            <label>
               Senha
               <span className="password-field">
                 <input
@@ -149,8 +129,8 @@ export function Cadastro() {
               />
             </label>
             <p className="body-copy">
-              Ao enviar, nome, e-mail, WhatsApp e senha serão encaminhados ao
-              servidor do projeto. Consulte as{" "}
+              Ao enviar, nome, e-mail e senha serão encaminhados ao servidor do
+              projeto. Consulte as{" "}
               <Link to="/privacidade">informações de privacidade</Link>.
             </p>
             {erro && (
