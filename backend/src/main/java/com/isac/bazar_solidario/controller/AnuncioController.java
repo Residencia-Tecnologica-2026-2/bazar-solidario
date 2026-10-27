@@ -7,7 +7,6 @@ import com.isac.bazar_solidario.model.Loja;
 import com.isac.bazar_solidario.service.AnuncioService;
 import com.isac.bazar_solidario.service.LojaAutenticadaService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,7 +21,6 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/anuncios")
-@RequiredArgsConstructor
 public class AnuncioController {
 
     private static final Set<String> CAMPOS_ORDENAVEIS = Set.of("preco", "dataCriacao", "titulo");
@@ -30,6 +28,11 @@ public class AnuncioController {
 
     private final AnuncioService anuncioService;
     private final LojaAutenticadaService lojaAutenticada;
+
+    public AnuncioController(AnuncioService anuncioService, LojaAutenticadaService lojaAutenticada) {
+        this.anuncioService = anuncioService;
+        this.lojaAutenticada = lojaAutenticada;
+    }
 
     @GetMapping
     public PageResponse<AnuncioResponse> listar(
@@ -56,8 +59,7 @@ public class AnuncioController {
 
     @GetMapping("/{id}")
     public AnuncioResponse buscar(@PathVariable Long id, Authentication authentication) {
-        Loja lojaLogada = null;
-        try { lojaLogada = lojaAutenticada.obter(authentication); } catch (Exception ignored) {}
+        Loja lojaLogada = lojaAutenticada.obterOpcional(authentication).orElse(null);
         return anuncioService.buscarPorId(id, lojaLogada);
     }
 

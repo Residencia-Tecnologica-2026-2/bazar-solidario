@@ -67,6 +67,6 @@ public class Anuncio {
     }
 
     public boolean pertenceA(Long lojaId) {
-        return loja != null && loja.getId().equals(lojaId);
+        return loja != null && loja.possuiId(lojaId);
     }
 }

@@ -26,10 +26,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -51,6 +53,7 @@ class AnuncioControllerTest {
         loja = new Loja();
         loja.setId(1L); loja.setNome("Brechó da Ana"); loja.setWhatsapp("5581999999999");
         when(lojaAutenticada.obter(any())).thenReturn(loja);
+        when(lojaAutenticada.obterOpcional(any())).thenReturn(Optional.of(loja));
     }
 
     private static final String JSON_VALIDO = """
@@ -80,13 +83,26 @@ class AnuncioControllerTest {
 
     @Test
     void consultaPorIdNaoExigeLogin() throws Exception {
-        when(anuncioService.buscarPorId(eq(5L), any())).thenReturn(resposta());
+        when(lojaAutenticada.obterOpcional(isNull())).thenReturn(Optional.empty());
+        when(anuncioService.buscarPorId(eq(5L), isNull())).thenReturn(resposta());
         mockMvc.perform(get("/anuncios/5")).andExpect(status().isOk()).andExpect(jsonPath("$.id").value(5));
+        verify(anuncioService).buscarPorId(5L, null);
+    }
+
+    @Test
+    @WithMockUser
+    void consultaPorIdEnviaLojaLogadaAoService() throws Exception {
+        when(anuncioService.buscarPorId(5L, loja)).thenReturn(resposta());
+
+        mockMvc.perform(get("/anuncios/5")).andExpect(status().isOk());
+
+        verify(anuncioService).buscarPorId(5L, loja);
     }
 
     @Test
     void anuncioInexistenteRetorna404() throws Exception {
-        when(anuncioService.buscarPorId(eq(99L), any()))
+        when(lojaAutenticada.obterOpcional(isNull())).thenReturn(Optional.empty());
+        when(anuncioService.buscarPorId(eq(99L), isNull()))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
         mockMvc.perform(get("/anuncios/99")).andExpect(status().isNotFound());
     }

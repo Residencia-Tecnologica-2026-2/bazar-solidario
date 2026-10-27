@@ -5,7 +5,6 @@ import com.isac.bazar_solidario.dto.LojaResponse;
 import com.isac.bazar_solidario.dto.PageResponse;
 import com.isac.bazar_solidario.service.LojaService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,10 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/lojas")
-@RequiredArgsConstructor
 public class LojaController {
 
     private final LojaService lojaService;
+
+    public LojaController(LojaService lojaService) {
+        this.lojaService = lojaService;
+    }
 
     @GetMapping
     public PageResponse<LojaResponse> listar(Pageable pageable) {
