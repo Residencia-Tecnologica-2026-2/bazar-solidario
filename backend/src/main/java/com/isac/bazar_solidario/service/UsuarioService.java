@@ -52,9 +52,10 @@ public class UsuarioService {
         usuario = usuarioRepository.save(usuario);
 
         if (role == Role.LOJA) {
+            String whatsapp = req.whatsapp() != null ? req.whatsapp() : "00000000000";
             Loja loja = new Loja();
             loja.setNome(req.nome().trim());
-            loja.setWhatsapp("00000000000");
+            loja.setWhatsapp(whatsapp);
             loja.setUsuario(usuario);
             lojaRepository.save(loja);
         }

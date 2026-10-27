@@ -24,11 +24,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
-
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // cadastro e login são públicos (é assim que se consegue o token)
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
                         .requestMatchers("/anuncios/meus").authenticated()
@@ -49,7 +49,6 @@ public class SecurityConfig {
                     res.getWriter().write("{\"status\":401,\"erro\":\"Não autenticado: envie o token no cabeçalho Authorization: Bearer <token>\"}");
                 }))
                 .addFilterBefore(new JwtAuthFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }
