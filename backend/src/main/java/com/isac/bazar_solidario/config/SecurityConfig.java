@@ -34,7 +34,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
                         // a ordem importa: /anuncios/* também casaria com /meus
                         .requestMatchers("/anuncios/meus").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias", "/lojas", "/lojas/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 // sem token / token inválido -> 401 em JSON (em vez de 403 vazio)

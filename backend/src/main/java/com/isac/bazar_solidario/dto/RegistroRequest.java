@@ -15,6 +15,10 @@ public record RegistroRequest(
 
         @NotBlank(message = "Senha é obrigatória")
         @Size(min = 6, max = 72, message = "Senha deve ter entre 6 e 72 caracteres")
-        String senha
+        String senha,
+
+        @jakarta.validation.constraints.NotBlank(message = "WhatsApp é obrigatório")
+        @jakarta.validation.constraints.Pattern(regexp = "^[0-9]{10,13}$", message = "WhatsApp deve conter de 10 a 13 dígitos, com DDI e DDD")
+        String whatsapp
 ) {
 }
