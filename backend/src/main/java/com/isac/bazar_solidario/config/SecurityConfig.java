@@ -33,16 +33,20 @@ public class SecurityConfig {
                         // cadastro e login são públicos (é assim que se consegue o token)
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
                         // a ordem importa: /anuncios/* também casaria com /meus
-                        .requestMatchers("/anuncios/meus").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/uploads").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/home").permitAll()
                         .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/anuncios/meus").authenticated()
+                        .anyRequest().authenticated())
                 // sem token / token inválido -> 401 em JSON (em vez de 403 vazio)
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> {
                     res.setStatus(HttpStatus.UNAUTHORIZED.value());
                     res.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     res.setCharacterEncoding("UTF-8");
-                    res.getWriter().write("{\"status\":401,\"erro\":\"Não autenticado: envie o token no cabeçalho Authorization: Bearer <token>\"}");
+                    res.getWriter().write(
+                            "{\"status\":401,\"erro\":\"Não autenticado: envie o token no cabeçalho Authorization: Bearer <token>\"}");
                 }))
                 .addFilterBefore(new JwtAuthFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
 
