@@ -10,13 +10,15 @@ test("cadastro respeita o contrato existente e descarta a senha da resposta", as
       nome: "Ana",
       email: "ana@example.com",
       senha: "exemplo123",
+      whatsapp: "5581999999999",
     }, { status: 201 });
     return Response.json({
       id: 1,
       nome: "Ana",
       email: "ana@example.com",
-      role: "CLIENTE",
+      role: "LOJA",
       senha: "exemplo123",
+      whatsapp: "5581999999999",
     });
   });
   assert.deepEqual(
@@ -24,12 +26,13 @@ test("cadastro respeita o contrato existente e descarta a senha da resposta", as
       nome: " Ana ",
       email: " ana@example.com ",
       senha: "exemplo123",
+      whatsapp: "5581999999999",
     }),
     {
       id: 1,
       nome: "Ana",
       email: "ana@example.com",
-      role: "CLIENTE",
+      role: "LOJA",
     },
   );
 });
@@ -39,7 +42,7 @@ test("falha de rede produz mensagem recuperável", async () => {
     throw new TypeError("Failed to fetch");
   });
   await assert.rejects(
-    cliente({ nome: "Ana", email: "ana@example.com", senha: "exemplo123" }),
+    cliente({ nome: "Ana", email: "ana@example.com", senha: "exemplo123", whatsapp: "5581999999999" }),
     /conectar ao servidor/,
   );
 });
@@ -56,7 +59,7 @@ for (const [status, mensagem] of [
       async () => new Response("stacktrace interno", { status }),
     );
     await assert.rejects(
-      cliente({ nome: "Ana", email: "ana@example.com", senha: "exemplo123" }),
+      cliente({ nome: "Ana", email: "ana@example.com", senha: "exemplo123", whatsapp: "5581999999999" }),
       mensagem,
     );
   });
@@ -70,7 +73,7 @@ test("resposta inválida não apresenta falso sucesso", async () => {
   ]) {
     const cliente = criarClienteUsuarios("/api", async () => resposta);
     await assert.rejects(
-      cliente({ nome: "Ana", email: "ana@example.com", senha: "exemplo123" }),
+      cliente({ nome: "Ana", email: "ana@example.com", senha: "exemplo123", whatsapp: "5581999999999" }),
       /resposta inesperada/,
     );
   }
@@ -80,10 +83,10 @@ test("resposta inválida não apresenta falso sucesso", async () => {
 test("cadastro aceita AuthResponse atual sem expor o token", async () => {
   const cliente = criarClienteUsuarios("/api", async () => Response.json({
     token: "token-de-teste", tipo: "Bearer", expiraEmMs: 86400000,
-    usuario: { id: 7, nome: "Ana", email: "ana@example.com", role: "CLIENTE" },
+    usuario: { id: 7, nome: "Ana", email: "ana@example.com", role: "LOJA" },
   }, { status: 201 }));
-  const resultado = await cliente({ nome: "Ana", email: "ana@example.com", senha: "123456" });
-  assert.deepEqual(resultado, { id: 7, nome: "Ana", email: "ana@example.com", role: "CLIENTE" });
+  const resultado = await cliente({ nome: "Ana", email: "ana@example.com", senha: "123456", whatsapp: "5581999999999" });
+  assert.deepEqual(resultado, { id: 7, nome: "Ana", email: "ana@example.com", role: "LOJA" });
   assert.ok(!("token" in resultado));
 });
 
@@ -91,5 +94,5 @@ test("cadastro rejeita AuthResponse com usuário incompleto", async () => {
   const cliente = criarClienteUsuarios("/api", async () => Response.json({
     token: "token-de-teste", usuario: { id: 7 },
   }));
-  await assert.rejects(cliente({ nome: "Ana", email: "ana@example.com", senha: "123456" }), /resposta inesperada/);
+  await assert.rejects(cliente({ nome: "Ana", email: "ana@example.com", senha: "123456", whatsapp: "5581999999999" }), /resposta inesperada/);
 });

@@ -25,7 +25,7 @@ São 36 testes de cadastro, catálogo e sacola. As evidências são geradas em `
 
 ## Integração atual
 
-O Vite encaminha `/api` para `http://localhost:8080`, removendo o prefixo. Configure `API_PROXY_TARGET` e `VITE_API_BASE_URL` conforme `.env.example`. O cadastro usa `POST /usuarios`, aceita `AuthResponse.usuario` e descarta o token no retorno à interface. Nome: até 100 caracteres; senha: 6 a 72, conforme o backend. A tela ainda não inicia sessão JWT.
+O Vite encaminha `/api` para `http://localhost:8080`, removendo o prefixo. Configure `API_PROXY_TARGET` e `VITE_API_BASE_URL` conforme `.env.example`. O cadastro de brechó usa `POST /usuarios`, envia nome, e-mail, senha e WhatsApp com DDI e DDD, aceita `AuthResponse.usuario` com role `LOJA` e descarta o token no retorno à interface. Nome: até 100 caracteres; senha: 6 a 72; WhatsApp: 10 a 13 dígitos, conforme o backend. A tela ainda não inicia sessão JWT.
 
 Catálogo e checkout permanecem demonstrativos. Os endpoints novos do backend não estão automaticamente integrados às demais telas. Os testes HTTP usam respostas simuladas e não comprovam persistência no PostgreSQL.
 

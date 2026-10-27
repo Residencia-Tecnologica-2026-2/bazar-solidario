@@ -2,13 +2,14 @@ export interface CadastroUsuario {
   nome: string;
   email: string;
   senha: string;
+  whatsapp: string;
 }
 
 export interface UsuarioCriado {
   id: number;
   nome: string;
   email: string;
-  role: "CLIENTE" | "ADMIN";
+  role: "LOJA";
 }
 
 /** Contrato disponível no UsuarioController. Não devolve a senha ao restante da UI. */
@@ -25,6 +26,7 @@ export class UsuarioService {
     if (!dados.nome.trim() || dados.nome.trim().length > 100) throw new Error("Informe seu nome (até 100 caracteres).");
     if (dados.email.trim().length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email.trim())) throw new Error("Informe um e-mail válido.");
     if (dados.senha.length < 6 || dados.senha.length > 72 || !dados.senha.trim()) throw new Error("A senha deve ter entre 6 e 72 caracteres.");
+    if (!/^\d{10,13}$/.test(dados.whatsapp.trim())) throw new Error("Informe um WhatsApp com DDI e DDD, usando de 10 a 13 dígitos.");
     if (dados.senha !== confirmacao) throw new Error("As senhas precisam ser iguais.");
     let resposta: Response;
     try {
@@ -38,6 +40,7 @@ export class UsuarioService {
           nome: dados.nome.trim(),
           email: dados.email.trim(),
           senha: dados.senha,
+          whatsapp: dados.whatsapp.trim(),
         }),
       });
     } catch {
@@ -74,7 +77,7 @@ export class UsuarioService {
       typeof usuario?.id !== "number" || !Number.isSafeInteger(usuario.id) || usuario.id <= 0 ||
       typeof usuario.nome !== "string" ||
       typeof usuario.email !== "string" ||
-      usuario.role !== "CLIENTE"
+      usuario.role !== "LOJA"
     ) {
       throw new Error("O servidor retornou uma resposta inesperada.");
     }
