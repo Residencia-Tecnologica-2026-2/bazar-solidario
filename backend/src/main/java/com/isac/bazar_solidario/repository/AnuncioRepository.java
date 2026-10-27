@@ -11,12 +11,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface AnuncioRepository
         extends JpaRepository<Anuncio, Long>, JpaSpecificationExecutor<Anuncio> {
 
-    /** Listagem filtrada; carrega categoria e vendedor junto para evitar N+1. */
     @Override
-    @EntityGraph(attributePaths = {"categoria", "vendedor"})
+    @EntityGraph(attributePaths = {"categoria", "loja"})
     Page<Anuncio> findAll(Specification<Anuncio> spec, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"categoria", "vendedor"})
-    Page<Anuncio> findByVendedorId(Long vendedorId, Pageable pageable);
+    @EntityGraph(attributePaths = {"categoria", "loja"})
+    Page<Anuncio> findByLojaId(Long lojaId, Pageable pageable);
 }
-
