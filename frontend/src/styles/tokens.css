@@ -1,0 +1,77 @@
+
+:root {
+  --brand-orange: #F57F3A;
+  --brand-peach: #FF9B5A;
+  --brand-cream: #F1EBCB;
+  --brand-brown: #40291E;
+  --brand-petrol: #0B6676;
+  --color-stage: #e5e9e6;
+  --color-tint: #e6eeeb;
+  --color-aqua-tint: #dfefed;
+  --color-lavender-tint: #ffe2cb;
+  --color-soft-gold: #f0e9dd;
+  --color-background: #faf9f5;
+  --color-surface: #ffffff;
+  --color-primary: #0B6676;
+  --color-primary-hover: #005365;
+  --color-secondary: #005365;
+  --color-accent: #FF9B5A;
+  --color-accent-bright: #F57F3A;
+  --color-lavender: #FF9B5A;
+  --color-violet: #40291E;
+
+  --color-text-primary: #40291E;
+  --color-text-secondary: #654535;
+  --color-text-muted: #654535;
+  --color-text-on-dark: #fff9e9;
+  --color-text-on-dark-soft: rgb(255 252 247 / 0.72);
+
+  --color-border: #dddcd3;
+  --color-border-strong: #aaa59a;
+  --color-focus: #40291E;
+  --color-error: #8a2f3c;
+
+  --font-serif: "Fraunces Variable", Georgia, serif;
+  --font-sans:
+    "Instrument Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --text-display-xl: clamp(2.75rem, 1.6rem + 5.2vw, 6rem);
+  --text-display: clamp(2.25rem, 1.5rem + 3.4vw, 4.25rem);
+  --text-h1: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+  --text-h2: clamp(1.625rem, 1.3rem + 1.2vw, 2.25rem);
+  --text-h3: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --text-h4: 1.125rem;
+  --text-body-lg: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-label: 0.8125rem;
+  --text-caption: 0.75rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --shadow-ambient:
+    0 1px 2px rgb(22 63 67 / 0.05), 0 8px 24px rgb(22 63 67 / 0.05);
+
+  --container: 1320px;
+  --gutter: clamp(20px, 4vw, 48px);
+  --header-h: 96px;
+
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-base: 240ms;
+  --dur-editorial: 640ms;
+}

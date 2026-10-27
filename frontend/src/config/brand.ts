@@ -1,0 +1,1 @@
+export const brand = { name: "ISAC Brechó", projectName: "Bazar Solidário", institution: "Instituto Social e Ambiental do Cabo", status: "Marca atualizada pela equipe — vínculo institucional a confirmar" } as const;
