@@ -1,49 +1,53 @@
-# ISAC Brechó — integração local
+# Integração do MVP
 
-Esta pasta combina o PR 7 (`4b84704`) com os ícones aprovados e correções locais. Não foi publicado commit nem feito merge no GitHub.
+## Identidade e sessão
 
-## Abrir e executar
+`POST /usuarios` cria CLIENTE ou LOJA (LOJA exige WhatsApp). Cadastro público como ADMIN é recusado. `POST /auth/login` devolve JWT e usuário. `GET /auth/me` valida a sessão no servidor. O frontend verifica expiração antes das chamadas privadas e limpa a sessão quando recebe 401. Senhas são armazenadas com BCrypt no backend.
 
-Abra `ISAC-Brecho.code-workspace` no VS Code. O front-end fica em `frontend/`, a API Java em `backend/`.
+O JWT fica no armazenamento local do navegador; não é uma sessão por cookie HttpOnly e logout remove a cópia local, sem revogar tokens já emitidos. A validade padrão é de oito horas. Mudança da chave invalida tokens anteriores. Para uma implantação pública, a estratégia de sessão e proteção contra XSS deve ser revisada pela equipe.
 
-Requisitos: Java 21 e Node.js 22.18 ou superior. Ao extrair o ZIP em outro local, execute `npm ci` na pasta frontend.
+O navegador usa `/api`. O proxy Vite encaminha para a API local e remove o prefixo. Não é necessário liberar CORS para qualquer origem.
 
-Execute `INICIAR-BACKEND.cmd` e `INICIAR-FRONTEND.cmd` em duas janelas. Alternativamente use Terminal → Executar Tarefa → ISAC: iniciar aplicativo completo no VS Code. Se os servidores já estiverem rodando, use os links sem iniciar outra cópia.
+## Dados e telas
 
-- Aplicativo: http://127.0.0.1:4186/
-- Cadastro: http://127.0.0.1:4186/cadastro
-- Login: http://127.0.0.1:4186/login
-- API: http://127.0.0.1:8080/home
+| Tela | API | Acesso |
+|---|---|---|
+| Catálogo e detalhe | GET /anuncios, /anuncios/{id} | Público; sem fallback de produtos fictícios |
+| Brechós | GET /lojas | Público; link para peças do proprietário |
+| Encontros | GET /encontros | Público; datas e locais vindos da API |
+| Painel de peças | GET /anuncios/meus; POST/PUT/PATCH /anuncios | LOJA, apenas anúncios próprios |
+| Foto | POST /uploads (multipart: arquivo) | Token obrigatório; interface de loja |
+| Perfil da loja | GET/PUT /lojas/me | LOJA proprietária |
+| Registrar pedido | POST /pedidos | CLIENTE |
+| Histórico | GET /pedidos?page=0&size=12 | Cliente vê seus pedidos; loja vê os recebidos |
+| Aceite/cancelamento | PATCH /pedidos/{id}/confirmar ou cancelar | Propriedade conferida no servidor |
 
-O perfil `local` usa H2 persistente em `backend/dados/`. Isso permite cadastrar e autenticar sem Docker ou PostgreSQL instalados. Os dados permanecem após reiniciar a API. O perfil PostgreSQL original continua separado e não foi validado nesta máquina. Não execute duas APIs sobre o mesmo arquivo H2.
+O painel mínimo publica, edita e oculta anúncios e exibe pedidos recebidos. Uploads aceitam JPEG, PNG e WebP de até 5 MB, com nome gerado no servidor. Fotos públicas não exigem token para leitura. Tamanho, cor e conservação devem estar na descrição: a interface não inventa esses atributos.
 
-## Correções
+## Contrato de pedido
 
-1. O fetch padrão do UsuarioService agora é chamado por `globalThis.fetch(...)`, preservando o receptor exigido pelo navegador. A chamada anterior como método da classe podia falhar antes de enviar HTTP.
-2. O front usa `/api`; o Vite encaminha para `localhost:8080`, removendo o prefixo. O navegador conversa com a própria origem; não foi liberado CORS indiscriminadamente.
-3. Cadastro de CLIENTE e LOJA, login, sessão JWT e logout do PR foram mantidos. O servidor recusa cadastro público como ADMIN e exige WhatsApp válido para LOJA.
-4. As regras privadas `/anuncios/meus` e `/lojas/me` passam antes das regras públicas com curingas.
-5. O cliente trata resposta nula, identificador inválido e perfil inesperado. Os testes antigos de cadastro foram alinhados ao AuthResponse com token e usuario.
-6. Ícones originais e categorias normalizadas foram preservados.
+`POST /pedidos` exige `Authorization: Bearer ...`, `Content-Type: application/json` e `Idempotency-Key` (UUID por intenção de compra).
 
-## Fluxo
+```json
+{"itens":[{"anuncioId":42,"quantidade":1}]}
+```
 
-Formulário → UsuarioService → POST /api/usuarios ou /api/auth/login → proxy Vite → controller Java → service → repository → banco → JSON com token e usuário → sessão local e perfil.
+Não são aceitos como fonte de verdade preços, percentuais, total ou proprietário enviados pelo navegador. O servidor consulta anúncios ativos, verifica estoque e um único vendedor e grava itens com título e preço como estavam no pedido. A mesma chave e os mesmos itens devolvem o pedido já criado; reutilizar a chave com outro conteúdo produz conflito.
 
-O catálogo e a sacola ainda usam dados demonstrativos. A tela de pagamento do PR também é simulada; não faz cobrança nem transferência. Esta entrega corrige e valida autenticação, não conecta automaticamente todas as telas à API.
+Reserva e criação acontecem na mesma transação. Bloqueios de linha ordenados impedem disputa da última unidade. Edição de anúncio exige `versao`, obtida na consulta: formulário antigo não pode repor acidentalmente estoque reservado. Cancelar devolve unidades sob os mesmos bloqueios e não pode ocorrer duas vezes.
 
-## Verificar
+Estados: `AGUARDANDO_CONFIRMACAO_MANUAL` → `CONFIRMADO` ou `CANCELADO`. Cliente só cancela pendente; a loja proprietária também pode cancelar após aceite. Não há estado “pago”, estorno financeiro ou transferência automática.
 
-- Frontend: `npm test` e `npm run build`.
-- Backend: `mvnw.cmd test`.
-- Cadastre uma conta fictícia, saia e entre novamente. Recarregue a página para conferir a sessão. Senha errada deve mostrar mensagem de credenciais inválidas, e e-mail repetido deve ser recusado.
+## Divisão ISAC
 
-O ZIP contém código e configuração, sem node_modules, banco local, tokens ou artefatos compilados. O H2 é exclusivo para desenvolvimento local; antes de publicar, configure PostgreSQL, chave JWT e estratégia de sessão apropriada ao ambiente.
+Base: soma de preço unitário × quantidade dos produtos, sem frete ou taxa extra. ISAC = total × 0,10, arredondado HALF_UP para duas casas. Brechó = total − ISAC. Exemplo: R$ 89,99 → ISAC R$ 9,00; brechó R$ 80,99. Cancelados devem ser excluídos da conciliação financeira. A divisão não comprova recebimento de dinheiro.
 
-## Área do brechó e catálogo publicado
+## Limites explícitos
 
-Contas LOJA acessam Perfil → Cadastrar e gerenciar minhas peças (`/loja/produtos`). O painel consulta categorias e anúncios pela API, faz upload de foto real, publica a peça, permite editar e ocultar/publicar. A API define o proprietário pelo token; não existe campo de dono no formulário.
+Reservas pendentes não expiram automaticamente: cliente ou loja devem cancelar quando não houver continuidade. A interface adiciona uma unidade de cada anúncio; a API valida quantidades de 1 a 99. Não há inscrição em eventos, frete integrado, comprovante fiscal, gateway ou repasse automático. Formulários institucionais de contato/parceria continuam identificados como prévias sem envio.
 
-O catálogo real está em `/pecas-das-lojas`, também acessível pelo perfil e pelo link do catálogo de demonstração. Os produtos ilustrativos anteriores continuam separados. `validacao-produtos.json` registra publicação, imagem, alteração de preço e recusa de alteração por outra loja (403).
+H2 persistente foi usado nesta máquina porque PostgreSQL/Docker não estão disponíveis. Isso não substitui testar a implantação com PostgreSQL. Testes e evidências HTTP usam exclusivamente contas fictícias.
 
-Os campos de cadastro de CLIENTE e LOJA receberam layout de labels, ajuda de campo, foco e espaçamento consistente. Os 43 testes do front e o build passaram. O backend mantém os 56 testes anteriormente aprovados; esta etapa validou produtos também por HTTP real e pelo navegador.
+## Favoritos sincronizados com o Figma
+
+A etiqueta com estrela vem do desenho original `242:216`. As variantes `249:557` (não salvo) e `249:565` (salvo) usam a mesma geometria, com estrela creme ou laranja. A aplicação usa os SVGs locais, com área óptica de 24 px, nos botões de produto, categoria e navegação. Botões mantêm aria-pressed e a navegação ativa mantém aria-current. Fonte e arquivos estão em frontend/public/icons/isac/manifest.json.
