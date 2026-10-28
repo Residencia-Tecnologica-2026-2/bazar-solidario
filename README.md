@@ -6,6 +6,8 @@ Aplicativo React + TypeScript + Vite e API Java 21 + Spring Boot. Cadastro de cl
 
 ## Documentação para a equipe e a ONG
 
+- [Resumo para apresentar à empresa em PDF](docs/apresentacao/ISAC-Brecho-Resumo-para-Empresa.pdf): uma página com mudanças, benefícios e demonstração. [Versão em texto](docs/RESUMO-PARA-EMPRESA.md).
+
 - [Histórico de atualizações em PDF](docs/apresentacao/ISAC-Brecho-Historico-de-Atualizacoes.pdf): registro detalhado de hoje desde as 14h, com todos os ícones, frontend, backend, banco, APIs, arquivos e evidências.
 - [Histórico em texto](docs/HISTORICO-ATUALIZACOES.md): versão consultável no GitHub.
 - [Guia VS Code em PDF](docs/apresentacao/ISAC-Brecho-Guia-VS-Code.pdf) e [guia passo a passo](GUIA-VSCODE.md).
