@@ -23,7 +23,7 @@ export class UsuarioServiceTest {
   }
   async ["aceita limites de senha e nome e retorna apenas dados públicos"]() {
     for (const tamanho of [6, 72]) {
-      const service = new UsuarioService("/api", async () => Response.json({ id: 1, nome: "Ana", email: dados.email, role: "CLIENTE", senha: "hash" }));
+      const service = new UsuarioService("/api", async () => Response.json({ token: "token-teste", expiraEmMs: 86400000, usuario: { id: 1, nome: "Ana", email: dados.email, role: "CLIENTE" } }));
       const result = await service.cadastrar({ ...dados, nome: "a".repeat(100), senha: "a".repeat(tamanho) });
       assert.equal(result.id, 1);
       assert.ok(!("senha" in result));
@@ -58,3 +58,4 @@ describe("UsuarioService — cadastro integrado ao formulário", () => {
     });
   }
 });
+

@@ -1,0 +1,168 @@
+{
+  "source": "https://www.figma.com/design/UNlqj03qJ6BsaAX9sUwxiL?node-id=165-971",
+  "note": "Original exported assets. No path redraw. UI colors through alpha masks; multicolor art preserved. Missing inventory replacements: close, password visibility.",
+  "icons": [
+    {
+      "name": "Home",
+      "nodeId": "217:144",
+      "files": [
+        "Home.png"
+      ]
+    },
+    {
+      "name": "Search",
+      "nodeId": "217:148",
+      "files": [
+        "Search.png"
+      ]
+    },
+    {
+      "name": "Heart",
+      "nodeId": "217:150",
+      "files": [
+        "Heart.png"
+      ]
+    },
+    {
+      "name": "CalendarDays",
+      "nodeId": "217:152",
+      "files": [
+        "CalendarDays.png"
+      ]
+    },
+    {
+      "name": "UserRound",
+      "nodeId": "226:85",
+      "files": [
+        "UserRound.png"
+      ]
+    },
+    {
+      "name": "Shirt",
+      "nodeId": "217:101",
+      "files": [
+        "Shirt.svg",
+        "Shirt1.svg"
+      ]
+    },
+    {
+      "name": "Gem",
+      "nodeId": "217:109",
+      "files": [
+        "Gem.svg"
+      ]
+    },
+    {
+      "name": "Footprints",
+      "nodeId": "217:118",
+      "files": [
+        "Footprints.svg"
+      ]
+    },
+    {
+      "name": "Leaf",
+      "nodeId": "217:122",
+      "files": [
+        "Leaf.svg"
+      ]
+    },
+    {
+      "name": "HandHeart",
+      "nodeId": "217:127",
+      "files": [
+        "HandHeart.svg"
+      ]
+    },
+    {
+      "name": "Store",
+      "nodeId": "217:133",
+      "files": [
+        "Store.svg"
+      ]
+    },
+    {
+      "name": "ShoppingBag",
+      "nodeId": "226:70",
+      "files": [
+        "ShoppingBag.png"
+      ]
+    },
+    {
+      "name": "SlidersHorizontal",
+      "nodeId": "217:160",
+      "files": [
+        "SlidersHorizontal.png"
+      ]
+    },
+    {
+      "name": "Plus",
+      "nodeId": "214:99",
+      "files": [
+        "Plus.png"
+      ]
+    },
+    {
+      "name": "Trash2",
+      "nodeId": "226:97",
+      "files": [
+        "Trash2.png"
+      ]
+    },
+    {
+      "name": "ArrowRight",
+      "nodeId": "166:777",
+      "files": [
+        "ArrowRight.svg"
+      ]
+    },
+    {
+      "name": "ArrowUpRight",
+      "nodeId": "166:787",
+      "files": [
+        "ArrowUpRight.svg"
+      ]
+    },
+    {
+      "name": "ChevronRight",
+      "nodeId": "166:798",
+      "files": [
+        "ChevronRight.svg"
+      ]
+    },
+    {
+      "name": "ChevronDown",
+      "nodeId": "166:807",
+      "files": [
+        "ChevronDown.svg"
+      ]
+    },
+    {
+      "name": "MapPin",
+      "nodeId": "227:99",
+      "files": [
+        "MapPin.png"
+      ]
+    },
+    {
+      "name": "Info",
+      "nodeId": "227:101",
+      "files": [
+        "Info.png"
+      ]
+    },
+    {
+      "name": "CheckCircle2",
+      "nodeId": "166:838",
+      "files": [
+        "CheckCircle2.svg"
+      ]
+    },
+    {
+      "name": "Check",
+      "nodeId": "166:848",
+      "files": [
+        "Check.svg"
+      ]
+    }
+  ]
+}

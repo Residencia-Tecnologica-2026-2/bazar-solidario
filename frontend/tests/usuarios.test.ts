@@ -11,13 +11,13 @@ test("cadastro respeita o contrato existente e descarta a senha da resposta", as
       email: "ana@example.com",
       senha: "exemplo123",
     }, { status: 201 });
-    return Response.json({
+    return Response.json({ token: "token-teste", expiraEmMs: 86400000, usuario: {
       id: 1,
       nome: "Ana",
       email: "ana@example.com",
       role: "CLIENTE",
       senha: "exemplo123",
-    });
+    } });
   });
   assert.deepEqual(
     await cliente({
@@ -93,3 +93,4 @@ test("cadastro rejeita AuthResponse com usuário incompleto", async () => {
   }));
   await assert.rejects(cliente({ nome: "Ana", email: "ana@example.com", senha: "123456" }), /resposta inesperada/);
 });
+

@@ -1,39 +1,18 @@
-# ISAC Brechó - Bazar Solidário
+# ISAC Brechó — versão integrada local
 
-Projeto Integrador 3 da Residência Tecnológica.
+Projeto Integrador 3 · Residência Tecnológica.
 
-## Organização
+Base: PR 7 (feat/cadastro-login-pagamento, commit 4b84704), correções locais e ícones aprovados no Figma. Esta pasta não altera a main nem o PR remoto.
 
-- `backend/`: API Spring Boot e infraestrutura.
-- `frontend/`: aplicativo web mobile React + TypeScript + Vite, com a identidade ISAC atualizada.
-- `Tarefas da equipe/`: planejamento compartilhado.
+Abra ISAC-Brecho.code-workspace no VS Code. Consulte INTEGRACAO-LOCAL.md para iniciar front e backend.
 
-## Front-end local
+- frontend/: React, TypeScript, Vite, cadastro/login com API e ícones ISAC.
+- backend/: Java 21, Spring Boot, JWT e persistência. Perfil local H2 em arquivo; configuração PostgreSQL separada.
+- validacao-integracao.json: 12 verificações HTTP reais pelo proxy.
+- INICIAR-BACKEND.cmd e INICIAR-FRONTEND.cmd: iniciar em duas janelas.
 
-Requer Node.js 22.18+.
+Aplicativo: http://127.0.0.1:4186/ · API: http://127.0.0.1:8080/home
 
-```sh
-cd frontend
-npm ci
-npm run dev
-```
+Verificado: cadastro de cliente e loja, login, e-mail duplicado, senha incorreta, token, logout, sessão e persistência após reiniciar a API. 38 testes frontend e 56 backend aprovados; build concluído.
 
-Verificação: `npm test` e `npm run build`. `npm run test:evidencias` gera registros em `frontend/docs/evidencias/`.
-
-## Backend local
-
-Com Java 21 e PostgreSQL configurados, em outro terminal:
-
-```powershell
-cd backend
-.\mvnw.cmd spring-boot:run
-```
-
-O front-end encaminha `/api` para `http://localhost:8080`. O cadastro usa `POST /usuarios` e aceita `AuthResponse.usuario`. A interface ainda não mantém sessão JWT. Catálogo e checkout utilizam dados demonstrativos; a existência de endpoints no backend não significa que todas as telas já estejam conectadas. Veja `frontend/README.md`.
-
-## API da tela principal e imagens
-
-- `GET /home` retorna até cinco encontros próximos e doze lojas para a tela inicial.
-- `POST /uploads` recebe imagens JPEG, PNG ou WebP de até 5 MB com autenticação Bearer. O volume `bazar-uploads` do Docker preserva os arquivos ao recriar a API.
-- Para executar a suíte do backend sem PostgreSQL, em `backend/`: `./mvnw clean test` (Java 21).
-- Contratos: `backend/docs/HOME-API.md` e `backend/docs/UPLOADS-API.md`.
+Catálogo e pagamento continuam demonstrativos. O perfil local não comprova o funcionamento com PostgreSQL nem é configuração para publicação.

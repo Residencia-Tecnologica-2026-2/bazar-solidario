@@ -1,0 +1,22 @@
+/* Figma inventory: original assets, consistent optical slots and semantic states. */
+.isac-icon{display:inline-block;flex:none;vertical-align:middle;overflow:visible;pointer-events:none}
+.bottom-nav a{color:var(--brand-petrol)}
+.bottom-nav a>span{height:32px;width:48px;background:transparent;color:var(--brand-petrol);transition:background-color 160ms ease,color 160ms ease}
+.bottom-nav a.active>span{background:var(--brand-peach);color:var(--brand-brown)}
+.bottom-nav a.active{color:var(--brand-brown);font-weight:650}
+.bottom-nav a.active .isac-icon{transform:none}
+.favorite{color:var(--brand-petrol);border:1px solid transparent}
+.favorite.selected{background:var(--brand-cream);color:var(--brand-brown);border-color:var(--brand-orange)}
+.favorite.selected .isac-icon{fill:none}
+.categories>a>span,.categories>a:nth-child(2)>span,.categories>a:nth-child(3)>span,.categories>a:nth-child(4)>span{background:var(--color-tint);color:var(--brand-petrol)}
+.categories>a:hover>span{background:var(--brand-cream)}
+.categories .isac-icon{width:36px;height:36px;transform:none}
+.categories a:active .isac-icon{transform:scale(.96)}
+.filter-icon{color:var(--brand-petrol)}
+.filter-icon[aria-expanded=true]{background:var(--brand-cream);color:var(--brand-brown)}
+.disclosure[open] summary .isac-icon{transform:rotate(45deg)}
+.btn .isac-icon{color:inherit}
+button:disabled .isac-icon{opacity:.45}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--brand-petrol);outline-offset:4px}
+input[type=checkbox],input[type=radio]{accent-color:var(--brand-petrol)}
+@media(prefers-reduced-motion:reduce){.isac-icon,.bottom-nav a>span{transition:none}}

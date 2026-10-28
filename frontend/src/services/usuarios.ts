@@ -81,7 +81,7 @@ export class UsuarioService {
   private readonly baseUrl: string;
   private readonly fetcher: typeof fetch;
 
-  constructor(baseUrl: string, fetcher: typeof fetch = fetch) {
+  constructor(baseUrl: string, fetcher: typeof fetch = (...args) => globalThis.fetch(...args)) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.fetcher = fetcher;
   }
@@ -138,13 +138,18 @@ export class UsuarioService {
       throw new Error("O servidor retornou uma resposta inesperada.");
     }
 
+    if (!payload || typeof payload !== "object") {
+      throw new Error("O servidor retornou uma resposta inesperada.");
+    }
     const { token, expiraEmMs, usuario } = payload;
 
     if (
-      typeof token !== "string" ||
-      typeof usuario?.id !== "number" ||
+      typeof token !== "string" || !token.trim() ||
+      typeof usuario?.id !== "number" || !Number.isSafeInteger(usuario.id) || usuario.id <= 0 ||
       typeof usuario.nome !== "string" ||
-      typeof usuario.email !== "string"
+      typeof usuario.email !== "string" ||
+      !["CLIENTE", "LOJA", "ADMIN"].includes(usuario.role ?? "") ||
+      (contexto === "cadastro" && usuario.role === "ADMIN")
     ) {
       throw new Error("O servidor retornou uma resposta inesperada.");
     }

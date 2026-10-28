@@ -43,6 +43,12 @@ public class UsuarioService {
         }
 
         Role role = req.tipo() != null ? req.tipo() : Role.CLIENTE;
+        if (role != Role.CLIENTE && role != Role.LOJA) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de conta inválido");
+        }
+        if (role == Role.LOJA && (req.whatsapp() == null || !req.whatsapp().matches("^[0-9]{10,13}$"))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o WhatsApp da loja com DDI e DDD");
+        }
 
         Usuario usuario = new Usuario();
         usuario.setNome(req.nome().trim());
@@ -52,7 +58,7 @@ public class UsuarioService {
         usuario = usuarioRepository.save(usuario);
 
         if (role == Role.LOJA) {
-            String whatsapp = req.whatsapp() != null ? req.whatsapp() : "00000000000";
+            String whatsapp = req.whatsapp();
             Loja loja = new Loja();
             loja.setNome(req.nome().trim());
             loja.setWhatsapp(whatsapp);
