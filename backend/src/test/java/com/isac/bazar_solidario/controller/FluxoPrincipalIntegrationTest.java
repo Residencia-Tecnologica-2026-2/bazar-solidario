@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class FluxoPrincipalIntegrationTest {
     @Autowired MockMvc mockMvc;
-    @Autowired ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @Autowired CategoriaRepository categoriaRepository;
 
     @Test
@@ -46,12 +46,12 @@ class FluxoPrincipalIntegrationTest {
         mockMvc.perform(post("/usuarios").contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"nome":"Brechó Teste","email":"teste@bazar.local",
-                                 "senha":"senha123","whatsapp":"5581999999999"}
+                                 "senha":"senha123","tipo":"LOJA","whatsapp":"5581999999999"}
                                 """))
                 .andExpect(status().isCreated());
 
         MvcResult login = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"email":"teste@bazar.local","senha":"senha123"}"""))
+                        .content("{\"email\":\"teste@bazar.local\",\"senha\":\"senha123\"}"))
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode loginJson = objectMapper.readTree(login.getResponse().getContentAsString());
@@ -62,6 +62,15 @@ class FluxoPrincipalIntegrationTest {
                 .andReturn();
         long lojaId = objectMapper.readTree(loja.getResponse().getContentAsString()).get("id").asLong();
 
+        MvcResult upload = mockMvc.perform(multipart("/uploads")
+                        .file(new MockMultipartFile("arquivo", "foto.png", "image/png", pngUmPixel()))
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value(org.hamcrest.Matchers.matchesRegex("/uploads/[0-9a-f-]+\\.png")))
+                .andReturn();
+        String url = objectMapper.readTree(upload.getResponse().getContentAsString()).get("url").asText();
+        mockMvc.perform(get(url)).andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith("image/png"));
+
         long categoriaId = categoriaRepository.findAll().stream()
                 .findFirst().orElseThrow().getId();
         mockMvc.perform(post("/anuncios")
@@ -69,8 +78,8 @@ class FluxoPrincipalIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"titulo":"Casaco de teste","descricao":"","preco":25.00,
-                                 "estoque":1,"categoriaId":%d,"imagens":["/uploads/foto.png"]}
-                                """.formatted(categoriaId)))
+                                 "estoque":1,"categoriaId":%d,"imagens":["%s"]}
+                                """.formatted(categoriaId, url)))
                 .andExpect(status().isCreated());
         mockMvc.perform(get("/anuncios").param("lojaId", Long.toString(lojaId)))
                 .andExpect(status().isOk())
@@ -91,14 +100,6 @@ class FluxoPrincipalIntegrationTest {
                 .andExpect(jsonPath("$.lojas[0].endereco").hasJsonPath())
                 .andExpect(jsonPath("$.lojas[0].latitude").hasJsonPath());
 
-        MvcResult upload = mockMvc.perform(multipart("/uploads")
-                        .file(new MockMultipartFile("arquivo", "foto.png", "image/png", pngUmPixel()))
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url").value(org.hamcrest.Matchers.matchesRegex("/uploads/[0-9a-f-]+\\.png")))
-                .andReturn();
-        String url = objectMapper.readTree(upload.getResponse().getContentAsString()).get("url").asText();
-        mockMvc.perform(get(url)).andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith("image/png"));
     }
 
     @Test

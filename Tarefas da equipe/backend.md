@@ -63,7 +63,7 @@ O filtro JWT já entrega a authority como `ROLE_LOJA`.
 
 ## Como rodar com Docker
 
-**Pré-requisito:** Docker Desktop (ou Docker Engine) instalado e aberto. Cada pessoa sobe o **próprio banco local**. O banco não é compartilhado. Os comandos abaixo devem ser executados dentro da pasta `backend` do repositório (`cd backend`).
+**Pré-requisito:** Docker Desktop (ou Docker Engine) instalado e aberto. Cada pessoa sobe o **próprio banco local**. O banco não é compartilhado.
 
 | Para quê | Comando |
 |---|---|
@@ -77,12 +77,19 @@ O filtro JWT já entrega a authority como `ROLE_LOJA`.
 
 A API fica em `http://localhost:8080`. Credenciais do banco: banco `bazar_solidario`, usuário `postgres`, senha `postgres`.
 
-**Banco local:** o Compose já publica o PostgreSQL em `localhost:5433` para ferramentas gráficas (DBeaver, pgAdmin), evitando conflito com uma instalação local na porta 5432. O serviço da API usa a porta interna `db:5432`.
+**Para usar uma ferramenta gráfica (DBeaver, pgAdmin):** adicione na seção `db` do `docker-compose.yml`, **sem fazer commit**:
+
+```yaml
+    ports:
+      - "5433:5432"
+```
+
+Depois conecte em `localhost:5433`. Usei 5433 para não conflitar com um Postgres que já esteja na porta 5432.
 
 **Atenção, quando precisar de `docker compose down -v`:** o projeto usa `ddl-auto=update`. O Hibernate cria tabelas e colunas novas sozinho, mas **não altera o que já existe**. Se você mudar um **enum** (por exemplo `Role` para `LOJA`, ou um status novo), mudar o nome ou o tipo de uma coluna, o banco antigo continua com a regra antiga e dá erro de constraint. Nesses casos, apague o banco com `down -v` e suba de novo.
 
 **Outras observações:**
-- O Docker compila com `-DskipTests`. Para rodar os testes, use `./mvnw clean test` fora do Docker (precisa de Java 21). Se o PostgreSQL estiver no Compose, use `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/bazar_solidario ./mvnw clean test`.
+- O Docker compila com `-DskipTests`. Para rodar os testes, use `./mvnw clean test` fora do Docker (precisa de Java 21).
 - Se a porta 8080 estiver ocupada, troque `"8080:8080"` por `"8081:8080"` no compose.
 - Sem Docker, `./mvnw spring-boot:run` exige um Postgres local em `localhost:5432`.
 

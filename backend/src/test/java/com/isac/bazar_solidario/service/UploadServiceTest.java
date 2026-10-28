@@ -52,7 +52,7 @@ class UploadServiceTest {
     }
 
     @Test
-    void rejeitaConteudoMalformadoMesmoComMimeDeImagem() {
+    void rejeitaConteudoMalformadoMesmoComMimeDeImagem() throws Exception {
         byte[] pngFalso = new byte[64];
         pngFalso[0] = (byte) 0x89;
         pngFalso[1] = 'P';

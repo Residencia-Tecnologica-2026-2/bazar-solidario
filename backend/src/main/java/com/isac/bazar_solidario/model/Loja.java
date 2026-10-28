@@ -45,10 +45,6 @@ public class Loja {
     @Column(nullable = false, length = 13)
     private String whatsapp;
 
-    public Long getId() {
-        return id;
-    }
-
     public boolean possuiId(Long id) {
         return this.id != null && this.id.equals(id);
     }

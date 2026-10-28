@@ -28,32 +28,29 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // cadastro e login são públicos (é assim que se consegue o token)
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**", "/home").permitAll()
                         .requestMatchers(HttpMethod.POST, "/uploads").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/home").permitAll()
                         .requestMatchers("/anuncios/meus").authenticated()
-                        .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").hasRole("LOJA")
-                        // /lojas/me deve vir antes de /lojas/*.
-                        .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
                         .requestMatchers(HttpMethod.GET, "/encontros", "/encontros/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/encontros").hasRole("LOJA")
                         .requestMatchers(HttpMethod.PUT, "/encontros/*").hasRole("LOJA")
                         .requestMatchers(HttpMethod.PATCH, "/encontros/*/cancelar").hasRole("LOJA")
-                        .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias",
-                                "/lojas", "/lojas/*").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias", "/lojas", "/lojas/*").permitAll()
+                        .anyRequest().authenticated()
+                )
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> {
                     res.setStatus(HttpStatus.UNAUTHORIZED.value());
                     res.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     res.setCharacterEncoding("UTF-8");
-                    res.getWriter().write(
-                            "{\"status\":401,\"erro\":\"Não autenticado: envie o token no cabeçalho Authorization: Bearer <token>\"}");
+                    res.getWriter().write("{\"status\":401,\"erro\":\"Não autenticado: envie o token no cabeçalho Authorization: Bearer <token>\"}");
                 }))
                 .addFilterBefore(new JwtAuthFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }
