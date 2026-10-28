@@ -1,5 +1,6 @@
-import { Heart, ShoppingBag, Search, Leaf, HandHeart, Home, UserRound, Shirt, CalendarDays } from "./components/CoastalIcons";
-import { ClothingIcon, AccessoriesIcon, ShoesIcon, SavedIcon } from "./components/CategoryIcons";
+import { X } from "lucide-react";
+import { Heart, ShoppingBag, Search, Leaf, HandHeart, Home, UserRound, Shirt, CalendarDays } from "./components/IsacIcons";
+import { ClothingIcon, AccessoriesIcon, ShoesIcon, SavedIcon } from "./components/IsacIcons";
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import {
   Link,
@@ -14,7 +15,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Plus,
-  X,
+
   SlidersHorizontal,
   MapPin,
   ChevronRight,
@@ -23,7 +24,7 @@ import {
   Info,
   Trash2,
   CheckCircle2,
-} from "lucide-react";
+} from "./components/IsacIcons";
 import { events, photo, products, type Product } from "./data/store";
 import "./styles/mobile.css";
 import { Brand } from "./components/Brand";
@@ -1258,3 +1259,4 @@ export default function App() {
     </div>
   );
 }
+

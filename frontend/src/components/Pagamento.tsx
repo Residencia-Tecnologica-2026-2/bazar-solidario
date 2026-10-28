@@ -1,14 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowRight,
-  CheckCircle2,
-  Info,
   CreditCard,
   Smartphone,
-  HandHeart,
-  Store,
 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Info, HandHeart, Store } from "./IsacIcons";
 
 interface PagamentoProps {
   subtotal: number;

@@ -1,0 +1,45 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/target": true
+    }
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "ISAC: backend local",
+        "type": "shell",
+        "command": ".\\mvnw.cmd -Plocal \"-Dspring-boot.run.profiles=local\" spring-boot:run",
+        "options": {
+          "cwd": "${workspaceFolder}/backend"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "ISAC: frontend",
+        "type": "shell",
+        "command": "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4186 --strictPort",
+        "options": {
+          "cwd": "${workspaceFolder}/frontend"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "ISAC: iniciar aplicativo completo",
+        "dependsOn": [
+          "ISAC: backend local",
+          "ISAC: frontend"
+        ],
+        "dependsOrder": "parallel",
+        "problemMatcher": []
+      }
+    ]
+  }
+}

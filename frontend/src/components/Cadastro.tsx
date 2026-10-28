@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Eye, EyeOff, Store, UserRound } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import { ArrowRight, CheckCircle2, Store, UserRound } from "./IsacIcons";
 import { UsuarioService, type TipoConta } from "../services/usuarios";
 
 const usuarios = new UsuarioService(
@@ -205,3 +206,4 @@ export function Cadastro() {
     </>
   );
 }
+

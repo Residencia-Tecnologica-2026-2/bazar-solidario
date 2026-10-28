@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import { ArrowRight } from "./IsacIcons";
 import { UsuarioService } from "../services/usuarios";
 
 const usuarios = new UsuarioService(
@@ -102,3 +103,4 @@ export function Login() {
     </>
   );
 }
+
