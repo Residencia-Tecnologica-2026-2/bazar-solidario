@@ -32,6 +32,7 @@ import { brand } from "./config/brand";
 import "./styles/urban.css";
 import { Cadastro } from "./components/Cadastro";
 import { Login } from "./components/Login";
+import { ProdutosLoja, PecasPublicadas } from "./components/ProdutosLoja";
 import { Pagamento } from "./components/Pagamento";
 import { obterSessao, limparSessao } from "./services/usuarios";
 
@@ -93,6 +94,7 @@ function Catalog({
             : "Uma curadoria para o seu próximo capítulo."
         }
       />
+      {!favoritesOnly && <Link className="shop-public-entry text-button" to="/pecas-das-lojas">Ver peças publicadas pelas lojas <ArrowRight size={16}/></Link>}
       <div className="search-field">
         <Search size={19} />
         <input
@@ -921,6 +923,8 @@ export default function App() {
             </div>
           )}
         </div>
+        {isLoja && <Link className="btn full shop-entry" to="/loja/produtos"><Plus size={20}/> Cadastrar e gerenciar minhas peças <ArrowRight size={18}/></Link>}
+        <Link className="text-button shop-public-entry" to="/pecas-das-lojas">Ver peças publicadas pelos brechós <ArrowRight size={16}/></Link>
         <div className="menu-list">
           {[
             ["/favoritos", "Meus favoritos", Heart, favorites.length],
@@ -1168,6 +1172,8 @@ export default function App() {
           />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/loja/produtos" element={<ProdutosLoja />} />
+          <Route path="/pecas-das-lojas" element={<PecasPublicadas />} />
           <Route path="/boas-vindas" element={<Onboarding />} />
           <Route path="/faq" element={<Faq />} />
           <Route

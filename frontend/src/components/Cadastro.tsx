@@ -82,6 +82,8 @@ export function Cadastro() {
             <button
               type="button"
               className={tipo === "CLIENTE" ? "active" : ""}
+              aria-pressed={tipo === "CLIENTE"}
+              disabled={enviando}
               onClick={() => setTipo("CLIENTE")}
             >
               <UserRound size={15} style={{ verticalAlign: "middle", marginRight: 5 }} />
@@ -90,6 +92,8 @@ export function Cadastro() {
             <button
               type="button"
               className={tipo === "LOJA" ? "active" : ""}
+              aria-pressed={tipo === "LOJA"}
+              disabled={enviando}
               onClick={() => setTipo("LOJA")}
             >
               <Store size={15} style={{ verticalAlign: "middle", marginRight: 5 }} />
@@ -134,7 +138,9 @@ export function Cadastro() {
                   autoComplete="tel"
                   required
                   minLength={10}
-                  maxLength={14}
+                  maxLength={13}
+                  inputMode="numeric"
+                  pattern="[0-9]{10,13}"
                   placeholder="5581999990000"
                   aria-describedby="wpp-ajuda"
                 />

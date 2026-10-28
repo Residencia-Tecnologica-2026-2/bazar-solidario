@@ -39,3 +39,11 @@ O catálogo e a sacola ainda usam dados demonstrativos. A tela de pagamento do P
 - Cadastre uma conta fictícia, saia e entre novamente. Recarregue a página para conferir a sessão. Senha errada deve mostrar mensagem de credenciais inválidas, e e-mail repetido deve ser recusado.
 
 O ZIP contém código e configuração, sem node_modules, banco local, tokens ou artefatos compilados. O H2 é exclusivo para desenvolvimento local; antes de publicar, configure PostgreSQL, chave JWT e estratégia de sessão apropriada ao ambiente.
+
+## Área do brechó e catálogo publicado
+
+Contas LOJA acessam Perfil → Cadastrar e gerenciar minhas peças (`/loja/produtos`). O painel consulta categorias e anúncios pela API, faz upload de foto real, publica a peça, permite editar e ocultar/publicar. A API define o proprietário pelo token; não existe campo de dono no formulário.
+
+O catálogo real está em `/pecas-das-lojas`, também acessível pelo perfil e pelo link do catálogo de demonstração. Os produtos ilustrativos anteriores continuam separados. `validacao-produtos.json` registra publicação, imagem, alteração de preço e recusa de alteração por outra loja (403).
+
+Os campos de cadastro de CLIENTE e LOJA receberam layout de labels, ajuda de campo, foco e espaçamento consistente. Os 43 testes do front e o build passaram. O backend mantém os 56 testes anteriormente aprovados; esta etapa validou produtos também por HTTP real e pelo navegador.
