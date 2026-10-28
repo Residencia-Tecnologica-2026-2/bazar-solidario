@@ -4,14 +4,14 @@ services:
     container_name: bazar-db
     environment:
       POSTGRES_DB: bazar_solidario
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${DB_USER:?Defina DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD}
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - bazar-dados:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d bazar_solidario"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,15 +23,16 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     volumes:
       - bazar-uploads:/app/uploads
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bazar_solidario
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      DB_URL: jdbc:postgresql://db:5432/bazar_solidario
+      DB_USER: ${DB_USER:?Defina DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD}
       APP_UPLOADS_DIRECTORY: /app/uploads
-      JWT_SECRET: bazar-solidario-chave-docker-troque-esta-chave-123456
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET com pelo menos 32 caracteres}
+      DDL_AUTO: ${DDL_AUTO:-update}
 
 volumes:
   bazar-dados:

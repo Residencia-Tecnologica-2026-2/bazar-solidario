@@ -10,3 +10,7 @@ backend/dados/
 backend/uploads/
 backend/target/
 *.log
+
+backend/.local-secrets.properties
+
+/tmp/

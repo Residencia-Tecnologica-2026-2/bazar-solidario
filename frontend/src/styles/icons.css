@@ -20,3 +20,8 @@ button:disabled .isac-icon{opacity:.45}
 button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--brand-petrol);outline-offset:4px}
 input[type=checkbox],input[type=radio]{accent-color:var(--brand-petrol)}
 @media(prefers-reduced-motion:reduce){.isac-icon,.bottom-nav a>span{transition:none}}
+
+/* State comes from the accessible control/navigation, while artwork remains unchanged. */
+.favorite-state-icon .favorite-icon-on{display:none}
+.favorite.selected .favorite-icon-off,.bottom-nav a.active .favorite-icon-off,.favorite-category-icon .favorite-icon-off{display:none}
+.favorite.selected .favorite-icon-on,.bottom-nav a.active .favorite-icon-on,.favorite-category-icon .favorite-icon-on{display:inline}

@@ -72,9 +72,9 @@ export const products = [
       "Linhas clássicas e personalidade nos detalhes. Especificações de proteção devem ser verificadas pelo parceiro.",
   },
 ];
-export type Product = (typeof products)[number];
+export type Product = (typeof products)[number] & { vendedorId?:number };
 export const photo = (id: string, width = 700) =>
-  id.startsWith("/")
+  (id.startsWith("/") || /^https?:\/\//.test(id))
     ? id
     : `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`;
 export const events = [

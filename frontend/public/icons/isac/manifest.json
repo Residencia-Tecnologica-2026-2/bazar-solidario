@@ -164,5 +164,22 @@
         "Check.svg"
       ]
     }
-  ]
+  ],
+  "favorites": {
+    "sourceNode": "242:216",
+    "componentSet": "249:573",
+    "slot": 24,
+    "artHeight": 20,
+    "states": {
+      "notSaved": {
+        "nodeId": "249:557",
+        "file": "favoritos-nao-salvo.svg"
+      },
+      "saved": {
+        "nodeId": "249:565",
+        "file": "favoritos-salvo.svg"
+      }
+    },
+    "usage": "Produto: aria-pressed; navegação: aria-current; categoria: estrela laranja. Geometria original, sem redesenho."
+  }
 }

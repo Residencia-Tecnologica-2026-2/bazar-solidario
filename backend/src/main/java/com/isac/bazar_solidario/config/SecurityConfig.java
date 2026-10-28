@@ -35,7 +35,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/uploads/**", "/home").permitAll()
                         .requestMatchers(HttpMethod.POST, "/uploads").authenticated()
                         // ── anúncios: leitura pública, gestão só para LOJA ──
-                        .requestMatchers(HttpMethod.GET, "/anuncios/meus").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/anuncios/meus").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.POST, "/pedidos").hasRole("CLIENTE")
+                        .requestMatchers("/pedidos/**", "/pedidos").hasAnyRole("CLIENTE", "LOJA")
                         .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
                         .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias", "/lojas", "/lojas/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/anuncios").hasRole("LOJA")

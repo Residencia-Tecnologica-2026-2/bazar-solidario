@@ -90,7 +90,11 @@ public class AnuncioService {
     @Transactional
     public AnuncioResponse atualizar(Long id, AnuncioRequest req, Usuario usuario) {
         Anuncio anuncio = buscarDoDono(id, usuario);
+        if(req.versao()==null || !req.versao().equals(anuncio.getVersao())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"A peça mudou desde que você abriu o formulário. Recarregue antes de editar.");
+        }
         preencher(anuncio, req);
+        anuncioRepository.flush();
         return AnuncioResponse.de(anuncio);
     }
 
@@ -113,7 +117,7 @@ public class AnuncioService {
     // ---------- auxiliares ----------
 
     private Anuncio buscarDoDono(Long id, Usuario usuario) {
-        Anuncio anuncio = anuncioRepository.findById(id).orElseThrow(this::naoEncontrado);
+        Anuncio anuncio = anuncioRepository.bloquear(id).orElseThrow(this::naoEncontrado);
         if (!anuncio.pertenceA(usuario.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Você não é o proprietário deste anúncio");

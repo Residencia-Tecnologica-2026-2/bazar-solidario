@@ -10,7 +10,8 @@ public record LojaResponse(
         String endereco,
         Double latitude,
         Double longitude,
-        String whatsapp
+        String whatsapp,
+        Long vendedorId
 ) {
     public static LojaResponse de(Loja loja) {
         return new LojaResponse(
@@ -21,6 +22,6 @@ public record LojaResponse(
                 loja.getEndereco(),
                 loja.getLatitude(),
                 loja.getLongitude(),
-                loja.getWhatsapp());
+                loja.getWhatsapp(), loja.getUsuario().getId());
     }
 }

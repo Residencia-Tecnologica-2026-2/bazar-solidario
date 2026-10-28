@@ -15,7 +15,15 @@ function assetIcon(file: string, preserveColor = false) {
 }
 export const Home = assetIcon("Home.png", false);
 export const Search = assetIcon("Search.png", false);
-export const Heart = assetIcon("Heart.png", false);
+/** Original tag-and-star artwork exported from the two Figma variants. */
+export function FavoriteIcon({size=24,strokeWidth:_strokeWidth,className="",...props}:IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" className={`isac-icon favorite-state-icon ${className}`} aria-hidden="true" focusable="false" {...props}>
+    <image className="favorite-icon-off" href="/icons/isac/favoritos-nao-salvo.svg" x="4.794" y="2" width="14.412" height="20" />
+    <image className="favorite-icon-on" href="/icons/isac/favoritos-salvo.svg" x="4.794" y="2" width="14.412" height="20" />
+  </svg>;
+}
+// Existing call sites retain their semantic API; no replacement artwork is drawn in code.
+export const Heart = FavoriteIcon;
 export const CalendarDays = assetIcon("CalendarDays.png", false);
 export const UserRound = assetIcon("UserRound.png", false);
 export const Gem = assetIcon("Gem.svg", true);
@@ -45,6 +53,6 @@ export function Shirt({size=24,strokeWidth:_strokeWidth,className="",...props}:I
 export const ClothingIcon=assetIcon("categoria-roupas.svg", true);
 export const AccessoriesIcon=assetIcon("categoria-acessorios.svg", true);
 export const ShoesIcon=assetIcon("categoria-calcados.svg", true);
-export const SavedIcon=assetIcon("categoria-favoritos.svg", false);
+export function SavedIcon(props:IconProps){return <FavoriteIcon {...props} className={`favorite-category-icon ${props.className||""}`}/>;}
 export function ArrowLeft(props:IconProps){return <ArrowRight {...props} style={{...props.style,transform:"rotate(180deg)"}}/>;}
 

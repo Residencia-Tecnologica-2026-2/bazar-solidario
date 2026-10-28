@@ -49,7 +49,7 @@ export function obterSessao(): SessaoUsuario | null {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const s: SessaoUsuario = JSON.parse(raw);
-    if (!s?.token || !s?.usuario) return null;
+    if (!s?.token || !s?.usuario || !Number.isFinite(s.expiraEm) || s.expiraEm<=0 || !Number.isSafeInteger(s.usuario.id) || !["CLIENTE","LOJA","ADMIN"].includes(s.usuario.role)) { limparSessao(); return null; }
     if (s.expiraEm && Date.now() > s.expiraEm) {
       limparSessao();
       return null;

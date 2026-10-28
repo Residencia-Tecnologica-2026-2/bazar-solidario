@@ -21,6 +21,10 @@ public class Anuncio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    @Column(nullable=false, columnDefinition="bigint default 0")
+    private Long versao=0L;
+
     @Column(nullable = false, length = 150)
     private String titulo;
 
