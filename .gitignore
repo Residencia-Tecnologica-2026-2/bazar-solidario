@@ -5,3 +5,8 @@ frontend/dist/
 .env.*
 !.env.example
 frontend/docs/evidencias/
+
+backend/dados/
+backend/uploads/
+backend/target/
+*.log

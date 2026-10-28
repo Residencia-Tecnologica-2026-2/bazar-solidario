@@ -14,3 +14,6 @@ createRoot(document.getElementById("root")!).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+import './styles/icons.css';
+import './styles/forms.css';

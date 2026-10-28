@@ -1,0 +1,74 @@
+[
+  {
+    "cenario": "Cadastro cliente via proxy",
+    "esperado": 201,
+    "obtido": 201,
+    "aprovado": true
+  },
+  {
+    "cenario": "Cadastro loja via proxy",
+    "esperado": 201,
+    "obtido": 201,
+    "aprovado": true
+  },
+  {
+    "cenario": "Email duplicado",
+    "esperado": 409,
+    "obtido": 409,
+    "aprovado": true
+  },
+  {
+    "cenario": "Senha incorreta",
+    "esperado": 401,
+    "obtido": 401,
+    "aprovado": true
+  },
+  {
+    "cenario": "Login cliente",
+    "esperado": 200,
+    "obtido": 200,
+    "aprovado": true
+  },
+  {
+    "cenario": "Token reconhecido pela API",
+    "esperado": 200,
+    "obtido": 200,
+    "aprovado": true
+  },
+  {
+    "cenario": "Meus anuncios exige login",
+    "esperado": 401,
+    "obtido": 401,
+    "aprovado": true
+  },
+  {
+    "cenario": "Perfil privado da loja exige login",
+    "esperado": 401,
+    "obtido": 401,
+    "aprovado": true
+  },
+  {
+    "cenario": "Cliente nao pode criar anuncio",
+    "esperado": 403,
+    "obtido": 403,
+    "aprovado": true
+  },
+  {
+    "cenario": "Loja acessa seu perfil",
+    "esperado": 200,
+    "obtido": 200,
+    "aprovado": true
+  },
+  {
+    "cenario": "Cadastro publico nao cria ADMIN",
+    "esperado": 400,
+    "obtido": 400,
+    "aprovado": true
+  },
+  {
+    "cenario": "Loja exige WhatsApp",
+    "esperado": 400,
+    "obtido": 400,
+    "aprovado": true
+  }
+]
