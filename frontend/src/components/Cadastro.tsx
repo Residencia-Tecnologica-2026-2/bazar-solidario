@@ -1,13 +1,15 @@
 import { useRef, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
-import { UsuarioService } from "../services/usuarios";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, CheckCircle2, Eye, EyeOff, Store, UserRound } from "lucide-react";
+import { UsuarioService, type TipoConta } from "../services/usuarios";
 
 const usuarios = new UsuarioService(
   import.meta.env.VITE_API_BASE_URL || "/api",
 );
 
 export function Cadastro() {
+  const navigate = useNavigate();
+  const [tipo, setTipo] = useState<TipoConta>("CLIENTE");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
   const [nomeCriado, setNomeCriado] = useState("");
@@ -21,17 +23,25 @@ export function Cadastro() {
     const dados = new FormData(form);
     const nome = String(dados.get("nome") || "").trim();
     const senha = String(dados.get("senha") || "");
+    const whatsapp = String(dados.get("whatsapp") || "").trim();
     ocupado.current = true;
     setEnviando(true);
     setErro("");
     try {
-      const usuario = await usuarios.cadastrar({
-        nome,
-        email: String(dados.get("email") || ""),
-        senha,
-      }, String(dados.get("confirmacao") || ""));
+      const usuario = await usuarios.cadastrar(
+        {
+          nome,
+          email: String(dados.get("email") || ""),
+          senha,
+          tipo,
+          whatsapp: tipo === "LOJA" ? whatsapp : undefined,
+        },
+        String(dados.get("confirmacao") || ""),
+      );
       form.reset();
       setNomeCriado(usuario.nome);
+      // Após 2 s redireciona ao perfil (sessão já foi salva no service)
+      setTimeout(() => navigate("/perfil"), 2000);
     } catch (error) {
       setErro(
         error instanceof Error
@@ -56,29 +66,49 @@ export function Cadastro() {
           <CheckCircle2 size={48} />
           <h2>Bem-vindo, {nomeCriado}!</h2>
           <p>
-            Seu cadastro foi salvo no servidor. Continue descobrindo peças com
-            propósito.
+            Cadastro criado com sucesso. Redirecionando para seu perfil…
           </p>
-          <p>
-            O acesso à conta será disponibilizado quando o login estiver
-            integrado.
-          </p>
-          <Link className="btn full" to="/catalogo">
-            Explorar achados <ArrowRight size={18} />
+          <Link className="btn full" to="/perfil">
+            Ir para o perfil <ArrowRight size={18} />
           </Link>
         </div>
       ) : (
         <form className="form-card" onSubmit={enviar} aria-busy={enviando}>
           <h2>Seu primeiro passo</h2>
+
+          {/* ── seletor de tipo ── */}
+          <div className="chips" role="group" aria-label="Tipo de conta">
+            <button
+              type="button"
+              className={tipo === "CLIENTE" ? "active" : ""}
+              onClick={() => setTipo("CLIENTE")}
+            >
+              <UserRound size={15} style={{ verticalAlign: "middle", marginRight: 5 }} />
+              Usuário
+            </button>
+            <button
+              type="button"
+              className={tipo === "LOJA" ? "active" : ""}
+              onClick={() => setTipo("LOJA")}
+            >
+              <Store size={15} style={{ verticalAlign: "middle", marginRight: 5 }} />
+              Bazar / Brechó
+            </button>
+          </div>
+
           <fieldset disabled={enviando} className="signup-fields">
             <label>
-              Nome completo
+              {tipo === "LOJA" ? "Nome do brechó" : "Nome completo"}
               <input
                 name="nome"
-                autoComplete="name"
+                autoComplete={tipo === "LOJA" ? "organization" : "name"}
                 required
                 maxLength={100}
-                placeholder="Como podemos chamar você?"
+                placeholder={
+                  tipo === "LOJA"
+                    ? "Nome do seu brechó"
+                    : "Como podemos chamar você?"
+                }
               />
             </label>
             <label>
@@ -92,6 +122,27 @@ export function Cadastro() {
                 placeholder="voce@exemplo.com"
               />
             </label>
+
+            {/* ── campo exclusivo para LOJA ── */}
+            {tipo === "LOJA" && (
+              <label>
+                WhatsApp
+                <input
+                  name="whatsapp"
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  minLength={10}
+                  maxLength={14}
+                  placeholder="5581999990000"
+                  aria-describedby="wpp-ajuda"
+                />
+                <p className="field-help" id="wpp-ajuda">
+                  DDI + DDD + número, apenas dígitos (10–13 dígitos).
+                </p>
+              </label>
+            )}
+
             <label>
               Senha
               <span className="password-field">
@@ -129,8 +180,8 @@ export function Cadastro() {
               />
             </label>
             <p className="body-copy">
-              Ao enviar, nome, e-mail e senha serão encaminhados ao servidor do
-              projeto. Consulte as{" "}
+              Ao enviar, seus dados serão encaminhados ao servidor do projeto.
+              Consulte as{" "}
               <Link to="/privacidade">informações de privacidade</Link>.
             </p>
             {erro && (
@@ -142,6 +193,12 @@ export function Cadastro() {
               {enviando ? "Criando cadastro…" : "Criar cadastro"}
               <ArrowRight size={18} />
             </button>
+            <p style={{ textAlign: "center", marginTop: 14, fontSize: 13 }}>
+              Já tem conta?{" "}
+              <Link className="text-button" to="/login">
+                Fazer login
+              </Link>
+            </p>
           </fieldset>
         </form>
       )}

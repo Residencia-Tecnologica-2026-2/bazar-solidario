@@ -30,6 +30,9 @@ import { Brand } from "./components/Brand";
 import { brand } from "./config/brand";
 import "./styles/urban.css";
 import { Cadastro } from "./components/Cadastro";
+import { Login } from "./components/Login";
+import { Pagamento } from "./components/Pagamento";
+import { obterSessao, limparSessao } from "./services/usuarios";
 
 import { CatalogoService } from "./services/CatalogoService";
 import { SacolaService } from "./services/SacolaService";
@@ -172,8 +175,6 @@ export default function App() {
   const [favorites, setFavorites] = useState(() => savedIds("bs-favorites"));
   const [notice, setNotice] = useState("");
   const [intro, setIntro] = useState(0);
-  const [checkoutDone, setCheckoutDone] = useState(false);
-  const [delivery, setDelivery] = useState("retirada");
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -196,9 +197,6 @@ export default function App() {
     document.getElementById("conteudo")?.focus({ preventScroll: true });
   }, [location.pathname]);
   useEffect(() => () => clearTimeout(timer.current), []);
-  useEffect(() => {
-    setCheckoutDone(false);
-  }, [location.pathname, location.search]);
   function notify(text: string) {
     setNotice(text);
     clearTimeout(timer.current);
@@ -592,8 +590,6 @@ export default function App() {
     );
   }
   function Checkout() {
-    const done = checkoutDone;
-    const setDone = setCheckoutDone;
     if (!cart.length)
       return (
         <Empty
@@ -605,74 +601,12 @@ export default function App() {
       <>
         <Heading
           eyebrow="PRÉVIA DO PEDIDO"
-          title={
-            done ? "Tudo certo na prévia!" : "Um passo para um novo ciclo."
-          }
+          title="Um passo para um novo ciclo."
         />
-        {done ? (
-          <div className="success">
-            <CheckCircle2 size={48} />
-            <h2>Simulação concluída</h2>
-            <p>
-              Nenhum pedido foi enviado, nenhum valor foi cobrado e nenhuma peça
-              foi reservada. Sua sacola continua disponível para explorar.
-            </p>
-            <Link to="/catalogo" className="btn">
-              Voltar aos achados <ArrowRight size={18} />
-            </Link>
-          </div>
-        ) : (
-          <form
-            className="form-card"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setDone(true);
-            }}
-          >
-            <div className="info-box">
-              <Info size={20} />
-              <p>Esta é uma simulação. Não informe dados de pagamento.</p>
-            </div>
-            <h2>Como prefere receber?</h2>
-            <label className="radio-row">
-              <input
-                type="radio"
-                name="delivery"
-                value="retirada"
-                checked={delivery === "retirada"}
-                onChange={() => setDelivery("retirada")}
-              />
-              <span>
-                <strong>Retirada na ONG</strong>
-                <small>Local e horário a confirmar no piloto</small>
-              </span>
-            </label>
-            <label className="radio-row">
-              <input
-                type="radio"
-                name="delivery"
-                value="entrega"
-                checked={delivery === "entrega"}
-                onChange={() => setDelivery("entrega")}
-              />
-              <span>
-                <strong>Entrega</strong>
-                <small>Disponibilidade e valor a combinar</small>
-              </span>
-            </label>
-            <div className="total">
-              <span>Subtotal ilustrativo</span>
-              <strong>
-                {money(
-                  sacola.subtotal(cart),
-                )}
-              </strong>
-            </div>
-            <button className="btn full">
-              Concluir simulação <Check size={18} />
-            </button>
-          </form>
-        )}
+        <Pagamento
+          subtotal={sacola.subtotal(cart)}
+          onSucesso={() => {}}
+        />
       </>
     );
   }
@@ -937,24 +871,54 @@ export default function App() {
     );
   }
   function Profile() {
+    const [sessao, setSessao] = useState(obterSessao);
+
+    function sair() {
+      limparSessao();
+      setSessao(null);
+    }
+
+    const usuario = sessao?.usuario;
+    const isLoja = usuario?.role === "LOJA";
+
     return (
       <>
         <Heading
           eyebrow="SEU ESPAÇO NO BRECHÓ"
-          title="Olá, visitante."
+          title={usuario ? `Olá, ${usuario.nome.split(" ")[0]}.` : "Olá, visitante."}
           subtitle="Seu estilo. Suas histórias. Seus próximos achados."
         />
         <div className="profile-card">
           <span className="profile-avatar">
-            <UserRound size={36} />
+            {isLoja ? <Store size={36} /> : <UserRound size={36} />}
           </span>
-          <div>
-            <h2>Vamos nos conhecer?</h2>
-            <p>Explore o app sem precisar de cadastro.</p>
-            <Link className="text-button" to="/cadastro">
-              Criar meu cadastro <ArrowRight size={15} />
-            </Link>
-          </div>
+          {usuario ? (
+            <div>
+              <h2>{usuario.nome}</h2>
+              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 6 }}>
+                {usuario.email}
+              </p>
+              <p style={{ fontSize: 11, letterSpacing: 1.2, fontWeight: 700, color: "var(--color-secondary)", marginBottom: 10 }}>
+                {isLoja ? "BAZAR / BRECHÓ" : "USUÁRIO"}
+              </p>
+              <button className="text-button" onClick={sair} style={{ fontSize: 13 }}>
+                Sair da conta
+              </button>
+            </div>
+          ) : (
+            <div>
+              <h2>Vamos nos conhecer?</h2>
+              <p>Explore o app sem precisar de cadastro.</p>
+              <div style={{ display: "flex", gap: 14, marginTop: 4, flexWrap: "wrap" }}>
+                <Link className="text-button" to="/login">
+                  Fazer login <ArrowRight size={15} />
+                </Link>
+                <Link className="text-button" to="/cadastro">
+                  Criar cadastro <ArrowRight size={15} />
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
         <div className="menu-list">
           {[
@@ -1099,8 +1063,9 @@ export default function App() {
     "/eventos": "Encontros",
     "/sobre": "Nosso propósito",
     "/vender": "Faça parte",
-    "/checkout": "Prévia do pedido",
+    "/checkout": "Pagamento",
     "/cadastro": "Cadastro",
+    "/login": "Entrar",
   };
   return (
     <div className="app-shell">
@@ -1201,6 +1166,7 @@ export default function App() {
             }
           />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/boas-vindas" element={<Onboarding />} />
           <Route path="/faq" element={<Faq />} />
           <Route
