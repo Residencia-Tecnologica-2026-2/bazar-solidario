@@ -24,23 +24,23 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
-
         http
                 .csrf(csrf -> csrf.disable())
-                // API com token: não guarda sessão no servidor
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // cadastro e login são públicos (é assim que se consegue o token)
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
-                        // a ordem importa: /anuncios/* também casaria com /meus
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/uploads").authenticated()
                         .requestMatchers(HttpMethod.GET, "/home").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias").permitAll()
-                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/anuncios/meus").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").hasRole("LOJA")
+                        // /lojas/me deve vir antes de /lojas/*.
+                        .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.PUT, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias",
+                                "/lojas", "/lojas/*").permitAll()
                         .anyRequest().authenticated())
-                // sem token / token inválido -> 401 em JSON (em vez de 403 vazio)
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> {
                     res.setStatus(HttpStatus.UNAUTHORIZED.value());
                     res.setContentType(MediaType.APPLICATION_JSON_VALUE);

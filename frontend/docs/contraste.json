@@ -1,0 +1,37 @@
+[
+  {
+    "name": "texto / fundo",
+    "foreground": "#40291E",
+    "background": "#F1EBCB",
+    "ratio": 11.25,
+    "AA": true
+  },
+  {
+    "name": "texto / laranja",
+    "foreground": "#40291E",
+    "background": "#F57F3A",
+    "ratio": 5.13,
+    "AA": true
+  },
+  {
+    "name": "texto / pêssego",
+    "foreground": "#40291E",
+    "background": "#FF9B5A",
+    "ratio": 6.49,
+    "AA": true
+  },
+  {
+    "name": "ação / texto",
+    "foreground": "#F1EBCB",
+    "background": "#0B6676",
+    "ratio": 5.5,
+    "AA": true
+  },
+  {
+    "name": "texto secundário / fundo",
+    "foreground": "#654535",
+    "background": "#F1EBCB",
+    "ratio": 7.12,
+    "AA": true
+  }
+]
