@@ -35,4 +35,3 @@ public record AnuncioResponse(
                 a.getImagens().stream().map(Imagem::getUrl).toList());
     }
 }
-

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
+import java.util.HashSet;
 import com.isac.bazar_solidario.dto.EncontroRequest;
 import com.isac.bazar_solidario.dto.EncontroResponse;
 import com.isac.bazar_solidario.model.Encontro;
@@ -14,33 +15,36 @@ import com.isac.bazar_solidario.model.Loja;
 import com.isac.bazar_solidario.repository.EncontroRepository;
 import com.isac.bazar_solidario.repository.LojaRepository;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional; 
+import org.springframework.transaction.annotation.Transactional;
 
-@Service 
+@Service
 public class EncontroService {
     private final EncontroRepository encontroRepository;
     private final LojaRepository lojaRepository;
     private final LojaAutenticadaService lojaAutenticadaService;
 
-    public EncontroService(EncontroRepository encontroRepository, 
-                           LojaRepository lojaRepository, 
+    public EncontroService(EncontroRepository encontroRepository,
+                           LojaRepository lojaRepository,
                            LojaAutenticadaService lojaAutenticadaService) {
         this.encontroRepository = encontroRepository;
         this.lojaRepository = lojaRepository;
         this.lojaAutenticadaService = lojaAutenticadaService;
     }
 
+    @Transactional(readOnly = true)
     public List<EncontroResponse> listarProximosAtivos() {
-        return encontroRepository.listarProximosAtivos(LocalDate.now())
+        return encontroRepository.listarProximosAtivos(LocalDate.now(), Encontro.StatusEncontro.ATIVO)
                 .stream()
                 .map(EncontroResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<EncontroResponse> listarProximos(int quantidade) {
         return listarProximosAtivos().stream().limit(quantidade).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public EncontroResponse buscarPorId(Long id) {
         Encontro encontro = encontroRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encontro não encontrado"));
@@ -64,8 +68,7 @@ public class EncontroService {
 
         // Adiciona outras lojas participantes se informadas
         if (request.lojaIds() != null && !request.lojaIds().isEmpty()) {
-            List<Loja> outrasLojas = lojaRepository.findAllById(request.lojaIds());
-            encontro.getParticipantes().addAll(outrasLojas);
+            encontro.getParticipantes().addAll(obterLojasParticipantes(request.lojaIds()));
         }
 
         Encontro salvo = encontroRepository.save(encontro);
@@ -89,8 +92,7 @@ public class EncontroService {
         if (request.lojaIds() != null) {
             encontro.getParticipantes().clear();
             encontro.getParticipantes().add(lojaLogada); // Garante o criador
-            List<Loja> outrasLojas = lojaRepository.findAllById(request.lojaIds());
-            encontro.getParticipantes().addAll(outrasLojas);
+            encontro.getParticipantes().addAll(obterLojasParticipantes(request.lojaIds()));
         }
 
         return EncontroResponse.fromEntity(encontroRepository.save(encontro));
@@ -113,5 +115,12 @@ public class EncontroService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Apenas a loja criadora pode editar ou cancelar este encontro.");
         }
     }
-}
 
+    private List<Loja> obterLojasParticipantes(List<Long> ids) {
+        List<Loja> lojas = lojaRepository.findAllById(new HashSet<>(ids));
+        if (lojas.size() != new HashSet<>(ids).size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Uma ou mais lojas participantes não existem.");
+        }
+        return lojas;
+    }
+}

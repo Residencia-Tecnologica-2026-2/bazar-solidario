@@ -19,4 +19,3 @@ public interface AnuncioRepository
     @EntityGraph(attributePaths = {"categoria", "vendedor"})
     Page<Anuncio> findByVendedorId(Long vendedorId, Pageable pageable);
 }
-

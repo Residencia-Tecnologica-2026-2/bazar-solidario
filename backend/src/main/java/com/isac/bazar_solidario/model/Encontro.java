@@ -3,6 +3,7 @@ package com.isac.bazar_solidario.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.HashSet;
+import java.util.Set;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,23 +16,17 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import java.util.HashSet;
-import java.util.Set;
+import lombok.Setter;
 
-@Entity 
-@Table (name = "encontro")
-@Data 
-@NoArgsConstructor 
-@AllArgsConstructor 
-
-
-
-
+@Entity
+@Table(name = "encontro")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Encontro {
-    @Id 
+    @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -44,7 +39,7 @@ public class Encontro {
     @Column(nullable = false)
     private LocalTime horario;
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "local_encontro", nullable = false, length = 255)
     private String local;
 
     @Column(columnDefinition = "TEXT")
@@ -55,11 +50,11 @@ public class Encontro {
     private StatusEncontro status = StatusEncontro.ATIVO;
 
 
-    @ManyToOne 
+    @ManyToOne
     @JoinColumn (name = "criador_id", nullable = false)
     private Loja criador;
 
-    @ManyToMany 
+    @ManyToMany
     @JoinTable (
         name = "encontro_lojas",
         joinColumns = @JoinColumn (name = "encontro_id"),

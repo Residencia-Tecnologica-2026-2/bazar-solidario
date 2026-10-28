@@ -295,4 +295,3 @@ class AnuncioControllerTest {
                 new VendedorResponse(1L, "Dona Maria"), List.of("https://x.com/a.jpg"));
     }
 }
-

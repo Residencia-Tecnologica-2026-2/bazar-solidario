@@ -259,4 +259,3 @@ class AnuncioServiceTest {
         return a;
     }
 }
-

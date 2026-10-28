@@ -18,7 +18,7 @@ import com.isac.bazar_solidario.service.EncontroService;
 import java.util.List;
 import jakarta.validation.Valid;
 
-@RestController 
+@RestController
 @RequestMapping("/encontros")
 
 public class EncontroController {
@@ -26,7 +26,7 @@ public class EncontroController {
 
     public EncontroController(EncontroService encontroService) {
         this.encontroService = encontroService;
- 
+
     }
     @GetMapping
     public ResponseEntity<List<EncontroResponse>> listar() {
@@ -44,8 +44,8 @@ public class EncontroController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EncontroResponse> atualizar(@PathVariable Long id, 
-                                                      @Valid @RequestBody EncontroRequest request, 
+    public ResponseEntity<EncontroResponse> atualizar(@PathVariable Long id,
+                                                      @Valid @RequestBody EncontroRequest request,
                                                       Authentication authentication) {
         return ResponseEntity.ok(encontroService.atualizar(id, request, authentication));
     }
@@ -56,5 +56,3 @@ public class EncontroController {
         return ResponseEntity.noContent().build();
     }
 }
-
-

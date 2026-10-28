@@ -7,7 +7,7 @@ import com.isac.bazar_solidario.model.Loja;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
-@Service 
+@Service
 
 public class LojaAutenticadaService {
     private final LojaRepository lojaRepository;
@@ -16,9 +16,8 @@ public class LojaAutenticadaService {
         this.lojaRepository = lojaRepository;
     }
     public Loja obter(Authentication authentication) {
-        String email = authentication.getName();        
+        String email = authentication.getName();
         return lojaRepository.findByUsuarioEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loja não encontrada para o usuário autenticado"));
     }
 }
-

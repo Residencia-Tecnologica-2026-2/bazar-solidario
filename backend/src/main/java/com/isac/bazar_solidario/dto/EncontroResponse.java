@@ -26,7 +26,7 @@ public record EncontroResponse (
             encontro.getCriador().getId(),
             encontro.getCriador().getNome(),
             encontro.getCriador().getLogoUrl()
-   
+
         );
 
         var participantesResumo = encontro.getParticipantes().stream()
@@ -45,5 +45,5 @@ public record EncontroResponse (
             participantesResumo
         );
     }
-    
+
 }

@@ -99,4 +99,3 @@ public class AnuncioController {
         return PageRequest.of(Math.max(page, 0), tamanho, Sort.by(dir, campo));
     }
 }
-

@@ -24,11 +24,15 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
+    volumes:
+      - bazar-uploads:/app/uploads
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bazar_solidario
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      APP_UPLOADS_DIRECTORY: /app/uploads
       JWT_SECRET: bazar-solidario-chave-docker-troque-esta-chave-123456
 
 volumes:
   bazar-dados:
+  bazar-uploads:

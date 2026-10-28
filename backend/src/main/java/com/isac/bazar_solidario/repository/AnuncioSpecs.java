@@ -39,4 +39,3 @@ public final class AnuncioSpecs {
         return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }
-

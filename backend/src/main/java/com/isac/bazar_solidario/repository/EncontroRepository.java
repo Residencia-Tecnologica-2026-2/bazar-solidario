@@ -7,12 +7,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import com.isac.bazar_solidario.model.Encontro.StatusEncontro;
 import java.util.List;
 
-@Repository 
+@Repository
 
 public interface EncontroRepository extends JpaRepository<Encontro, Long> {
-    @Query("SELECT e FROM Encontro e WHERE e.status = 'ATIVO' AND e.data >= :hoje ORDER BY e.data ASC, e.horario ASC")
-    List<Encontro> listarProximosAtivos(@Param("hoje") LocalDate hoje);
+    @Query("SELECT e FROM Encontro e WHERE e.status = :status AND e.data >= :hoje ORDER BY e.data ASC, e.horario ASC")
+    List<Encontro> listarProximosAtivos(@Param("hoje") LocalDate hoje, @Param("status") StatusEncontro status);
 }
-

@@ -31,6 +31,8 @@ public class SecurityConfig {
                         // cadastro e login são públicos (é assim que se consegue o token)
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**", "/home").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/uploads").authenticated()
                         .requestMatchers("/anuncios/meus").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/anuncios/*/vendido").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/lojas/me").hasRole("LOJA")
