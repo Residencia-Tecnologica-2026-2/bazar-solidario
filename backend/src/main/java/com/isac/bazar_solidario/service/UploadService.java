@@ -1,123 +1,116 @@
-
 package com.isac.bazar_solidario.service;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class UploadService {
+    private static final long TAMANHO_MAXIMO = 5L * 1024 * 1024;
+    private static final long PIXELS_MAXIMOS = 10_000_000L;
+    private static final Map<String, String> EXTENSOES = Map.of(
+            "image/jpeg", ".jpg",
+            "image/png", ".png",
+            "image/webp", ".webp");
 
-    private final Path pastaUploads = Paths.get("uploads")
-            .toAbsolutePath()
-            .normalize();
+    private final Path pastaUploads;
+
+    public UploadService(@Value("${app.uploads.directory:uploads}") String diretorioUploads) {
+        this.pastaUploads = Paths.get(diretorioUploads).toAbsolutePath().normalize();
+    }
 
     public String salvar(MultipartFile arquivo) throws IOException {
-
-        // 1. Verifica se o arquivo está vazio
         if (arquivo == null || arquivo.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "O arquivo não pode estar vazio.");
+            throw erro(HttpStatus.BAD_REQUEST, "O arquivo não pode estar vazio.");
+        }
+        if (arquivo.getSize() > TAMANHO_MAXIMO) {
+            throw erro(HttpStatus.PAYLOAD_TOO_LARGE, "O arquivo deve ter no máximo 5 MB.");
         }
 
-        // 2. Verifica o tamanho máximo de 5 MB
-        if (arquivo.getSize() > 5 * 1024 * 1024) {
-            throw new ResponseStatusException(
-                    HttpStatus.PAYLOAD_TOO_LARGE,
-                    "O arquivo deve ter no máximo 5 MB.");
-        }
-
-        // 3. Verifica o tipo MIME informado
         String tipo = arquivo.getContentType();
-
-        if (tipo == null || !Set.of(
-                "image/jpeg",
-                "image/png",
-                "image/webp").contains(tipo.toLowerCase())) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    "Envie uma imagem JPG, PNG ou WebP.");
+        if (tipo == null) {
+            throw erro(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Envie uma imagem JPG, PNG ou WebP.");
+        }
+        tipo = tipo.toLowerCase(Locale.ROOT);
+        String extensao = EXTENSOES.get(tipo);
+        if (extensao == null) {
+            throw erro(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Envie uma imagem JPG, PNG ou WebP.");
         }
 
-        // 4. Verifica a assinatura do conteúdo
         byte[] conteudo = arquivo.getBytes();
+        validarImagem(conteudo, tipo);
 
-        if (!ehImagemValida(conteudo, tipo)) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    "O conteúdo do arquivo não corresponde a uma imagem válida.");
-        }
-
-        // 5. Cria a pasta de uploads, caso não exista
         Files.createDirectories(pastaUploads);
-
-        // 6. Define a extensão pelo tipo validado
-        String extensao = switch (tipo.toLowerCase()) {
-            case "image/jpeg" -> ".jpg";
-            case "image/png" -> ".png";
-            case "image/webp" -> ".webp";
-            default -> throw new ResponseStatusException(
-                    HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    "Formato não permitido.");
-        };
-
-        // 7. Gera um nome único para o arquivo
         String nomeArquivo = UUID.randomUUID() + extensao;
-
         Path destino = pastaUploads.resolve(nomeArquivo).normalize();
-
-        // 8. Salva o arquivo
-        arquivo.transferTo(destino);
-
-        // 9. Retorna a URL pública
+        if (!destino.startsWith(pastaUploads)) {
+            throw new IllegalStateException("Caminho de upload inválido");
+        }
+        Files.write(destino, conteudo);
         return "/uploads/" + nomeArquivo;
     }
 
-    private boolean ehImagemValida(byte[] dados, String tipo) {
+    private void validarImagem(byte[] conteudo, String tipo) throws IOException {
+        try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(conteudo))) {
+            if (input == null) {
+                throw erro(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "O conteúdo não é uma imagem válida.");
+            }
 
-        if (tipo == null || dados.length < 12) {
-            return false;
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) {
+                throw erro(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "O conteúdo não é uma imagem válida.");
+            }
+
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(input, true, true);
+                String formato = reader.getFormatName().toLowerCase(Locale.ROOT);
+                boolean formatoCompativel = switch (tipo) {
+                    case "image/jpeg" -> formato.equals("jpeg") || formato.equals("jpg");
+                    case "image/png" -> formato.equals("png");
+                    case "image/webp" -> formato.equals("webp");
+                    default -> false;
+                };
+                if (!formatoCompativel) {
+                    throw erro(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                            "O conteúdo do arquivo não corresponde ao tipo informado.");
+                }
+
+                int largura = reader.getWidth(0);
+                int altura = reader.getHeight(0);
+                if (largura <= 0 || altura <= 0 || (long) largura * altura > PIXELS_MAXIMOS) {
+                    throw erro(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                            "A imagem deve ter dimensões válidas e até 10 megapixels.");
+                }
+                if (reader.read(0) == null) {
+                    throw erro(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "O conteúdo não é uma imagem válida.");
+                }
+            } catch (ResponseStatusException ex) {
+                throw ex;
+            } catch (IOException | RuntimeException ex) {
+                throw erro(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "O conteúdo não é uma imagem válida.");
+            } finally {
+                reader.dispose();
+            }
         }
+    }
 
-        tipo = tipo.toLowerCase();
-
-        if (tipo.equals("image/jpeg")) {
-            return (dados[0] & 0xFF) == 0xFF
-                    && (dados[1] & 0xFF) == 0xD8
-                    && (dados[2] & 0xFF) == 0xFF;
-        }
-
-        if (tipo.equals("image/png")) {
-            return (dados[0] & 0xFF) == 0x89
-                    && dados[1] == 0x50
-                    && dados[2] == 0x4E
-                    && dados[3] == 0x47
-                    && dados[4] == 0x0D
-                    && dados[5] == 0x0A
-                    && dados[6] == 0x1A
-                    && dados[7] == 0x0A;
-        }
-
-        if (tipo.equals("image/webp")) {
-            return dados[0] == 'R'
-                    && dados[1] == 'I'
-                    && dados[2] == 'F'
-                    && dados[3] == 'F'
-                    && dados[8] == 'W'
-                    && dados[9] == 'E'
-                    && dados[10] == 'B'
-                    && dados[11] == 'P';
-        }
-
-        return false;
+    private ResponseStatusException erro(HttpStatus status, String mensagem) {
+        return new ResponseStatusException(status, mensagem);
     }
 }

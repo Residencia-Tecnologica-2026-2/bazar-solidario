@@ -6,10 +6,10 @@ services:
       POSTGRES_DB: bazar_solidario
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    volumes:
-      - bazar-dados:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    volumes:
+      - bazar-dados:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d bazar_solidario"]
       interval: 5s
@@ -24,12 +24,15 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
+    volumes:
+      - bazar-uploads:/app/uploads
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bazar_solidario
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      # troque por uma chave sua (mín. 32 caracteres) se for publicar em algum lugar
+      APP_UPLOADS_DIRECTORY: /app/uploads
       JWT_SECRET: bazar-solidario-chave-docker-troque-esta-chave-123456
 
 volumes:
   bazar-dados:
+  bazar-uploads:

@@ -38,6 +38,10 @@ public class SecurityConfig {
                         // /lojas/me deve vir antes de /lojas/*.
                         .requestMatchers(HttpMethod.GET, "/lojas/me").hasRole("LOJA")
                         .requestMatchers(HttpMethod.PUT, "/lojas/me").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.GET, "/encontros", "/encontros/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/encontros").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.PUT, "/encontros/*").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.PATCH, "/encontros/*/cancelar").hasRole("LOJA")
                         .requestMatchers(HttpMethod.GET, "/anuncios", "/anuncios/*", "/categorias",
                                 "/lojas", "/lojas/*").permitAll()
                         .anyRequest().authenticated())

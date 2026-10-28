@@ -2,11 +2,15 @@ package com.isac.bazar_solidario.service;
 
 import com.isac.bazar_solidario.dto.LojaAtualizacaoRequest;
 import com.isac.bazar_solidario.dto.LojaResponse;
+import com.isac.bazar_solidario.dto.LojaHomeResponse;
 import com.isac.bazar_solidario.dto.PageResponse;
 import com.isac.bazar_solidario.model.Loja;
 import com.isac.bazar_solidario.repository.LojaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -23,6 +27,17 @@ public class LojaService {
     @Transactional(readOnly = true)
     public PageResponse<LojaResponse> listar(Pageable pageable) {
         return PageResponse.de(lojaRepository.findAll(pageable).map(LojaResponse::de));
+    }
+
+    @Transactional(readOnly = true)
+    public List<LojaHomeResponse> listarParaHome(int quantidade) {
+        int limite = Math.max(0, quantidade);
+        if (limite == 0) {
+            return List.of();
+        }
+        return lojaRepository.findAll(PageRequest.of(0, limite, Sort.by(Sort.Direction.ASC, "id")))
+                .map(LojaHomeResponse::de)
+                .getContent();
     }
 
     @Transactional(readOnly = true)
