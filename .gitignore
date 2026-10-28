@@ -14,3 +14,5 @@ backend/target/
 backend/.local-secrets.properties
 
 /tmp/
+
+__pycache__/
