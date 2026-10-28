@@ -6,7 +6,7 @@ Aplicativo React + TypeScript + Vite e API Java 21 + Spring Boot. Cadastro de cl
 
 ## Documentação para a equipe e a ONG
 
-- [Histórico de atualizações em PDF](docs/apresentacao/ISAC-Brecho-Historico-de-Atualizacoes.pdf): mudanças, motivo, função, APIs, banco, compra e evidências.
+- [Histórico de atualizações em PDF](docs/apresentacao/ISAC-Brecho-Historico-de-Atualizacoes.pdf): registro detalhado de hoje desde as 14h, com todos os ícones, frontend, backend, banco, APIs, arquivos e evidências.
 - [Histórico em texto](docs/HISTORICO-ATUALIZACOES.md): versão consultável no GitHub.
 - [Guia VS Code em PDF](docs/apresentacao/ISAC-Brecho-Guia-VS-Code.pdf) e [guia passo a passo](GUIA-VSCODE.md).
 - [Implantação](IMPLANTACAO.md): ambiente, PostgreSQL, volumes, proxy e limites de validação.
