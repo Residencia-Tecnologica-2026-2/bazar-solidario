@@ -1,19 +1,47 @@
-# API de autenticação
+# Autenticação (JWT)
 
-## Cadastro de loja
+Fluxo: **cadastrar → recebe token → manda o token nas rotas protegidas**.
 
-**POST /usuarios** (público) recebe:
+| Método | Rota | Acesso | O que faz |
+|---|---|---|---|
+| POST | `/usuarios` | Público | Cadastra e já devolve o token |
+| POST | `/auth/login` | Público | E-mail + senha → token |
+| GET | `/auth/me` | Logado | Mostra o usuário do token |
 
-```json
-{"nome":"Brechó da Ana","email":"ana@email.com","senha":"123456","whatsapp":"5581999999999"}
+## Cadastro
 ```
-
-O WhatsApp deve conter de 10 a 13 dígitos, incluindo DDI e DDD. O cadastro cria o usuário e a loja na mesma transação. O nome inicial da loja é o nome informado no cadastro; o token retorna com role `LOJA`. A senha não é devolvida. E-mail duplicado retorna 409 e dados inválidos retornam 400.
+POST /usuarios
+{ "nome": "Ana", "email": "ana@email.com", "senha": "123456" }
+```
+Resposta `201`:
+```
+{ "token": "eyJ...", "tipo": "Bearer", "expiraEmMs": 86400000,
+  "usuario": { "id": 1, "nome": "Ana", "email": "ana@email.com", "role": "CLIENTE" } }
+```
+Erros: `400` (campo inválido, com mensagem por campo), `409` (e-mail já cadastrado).
 
 ## Login
+```
+POST /auth/login
+{ "email": "ana@email.com", "senha": "123456" }
+```
+Mesma resposta do cadastro. Erro: `401` "E-mail ou senha inválidos".
 
-**POST /auth/login** recebe e-mail e senha e devolve um token Bearer.
+## Usando o token
+Em toda rota protegida: `Authorization: Bearer <token>`
+```
+curl http://localhost:8080/auth/me -H "Authorization: Bearer SEU_TOKEN"
+curl -X POST http://localhost:8080/anuncios -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"titulo":"Camiseta","preco":25.00,"estoque":3,"categoriaId":1}'
+```
+Sem token ou com token inválido/expirado: `401`.
 
-## Sessão atual
+## Configuração (`application.properties`)
+- `jwt.secret` – chave de assinatura (mín. 32 caracteres). Em produção use a variável de ambiente `JWT_SECRET`.
+- `jwt.expiration-ms` – validade do token (padrão 24h).
 
-**GET /auth/me** exige `Authorization: Bearer <token>` e devolve os dados públicos do usuário autenticado.
+## Notas
+- Senhas são salvas com BCrypt. Usuários antigos salvos em texto puro não conseguem logar: apague-os da tabela `usuarios` e cadastre de novo.
+- O token guarda o **e-mail** (subject) e a role. O `UsuarioAutenticadoService` já usa o e-mail.
+- Todo cadastro novo vira `CLIENTE`. Para criar um ADMIN, altere a coluna `role` direto no banco.

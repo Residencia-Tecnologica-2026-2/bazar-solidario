@@ -7,9 +7,11 @@ import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
 import java.util.Locale;
 
+/** Filtros dinâmicos da listagem de anúncios. */
 public final class AnuncioSpecs {
 
-    private AnuncioSpecs() {}
+    private AnuncioSpecs() {
+    }
 
     public static Specification<Anuncio> comStatus(StatusAnuncio status) {
         return (root, query, cb) -> cb.equal(root.get("status"), status);
@@ -24,10 +26,6 @@ public final class AnuncioSpecs {
         return (root, query, cb) -> cb.equal(root.get("categoria").get("id"), categoriaId);
     }
 
-    public static Specification<Anuncio> daLoja(Long lojaId) {
-        return (root, query, cb) -> cb.equal(root.get("loja").get("id"), lojaId);
-    }
-
     public static Specification<Anuncio> precoMinimo(BigDecimal minimo) {
         return (root, query, cb) -> cb.greaterThanOrEqualTo(root.<BigDecimal>get("preco"), minimo);
     }
@@ -36,7 +34,9 @@ public final class AnuncioSpecs {
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.<BigDecimal>get("preco"), maximo);
     }
 
+    /** Evita que % e _ digitados pelo usuário virem curingas do LIKE. */
     private static String escapar(String texto) {
         return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }
+

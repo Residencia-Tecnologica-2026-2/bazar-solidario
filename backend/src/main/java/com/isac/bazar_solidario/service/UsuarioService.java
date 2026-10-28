@@ -4,37 +4,36 @@ import com.isac.bazar_solidario.dto.AuthResponse;
 import com.isac.bazar_solidario.dto.LoginRequest;
 import com.isac.bazar_solidario.dto.RegistroRequest;
 import com.isac.bazar_solidario.dto.UsuarioResponse;
+import com.isac.bazar_solidario.model.Loja;
 import com.isac.bazar_solidario.model.Role;
 import com.isac.bazar_solidario.model.Usuario;
-import com.isac.bazar_solidario.repository.UsuarioRepository;
 import com.isac.bazar_solidario.repository.LojaRepository;
-import com.isac.bazar_solidario.model.Loja;
-import org.springframework.transaction.annotation.Transactional;
+import com.isac.bazar_solidario.repository.UsuarioRepository;
 import com.isac.bazar_solidario.security.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final LojaRepository lojaRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final LojaRepository lojaRepository;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
+                          LojaRepository lojaRepository,
                           PasswordEncoder passwordEncoder,
-                          JwtService jwtService,
-                          LojaRepository lojaRepository) {
+                          JwtService jwtService) {
         this.usuarioRepository = usuarioRepository;
+        this.lojaRepository = lojaRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
-        this.lojaRepository = lojaRepository;
     }
 
-    /** Cadastra o usuário (senha criptografada) e já devolve um token. */
     @Transactional
     public AuthResponse cadastrar(RegistroRequest req) {
         String email = req.email().trim().toLowerCase();
@@ -43,24 +42,30 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
         }
 
+        Role role = req.tipo() != null ? req.tipo() : Role.CLIENTE;
+
         Usuario usuario = new Usuario();
         usuario.setNome(req.nome().trim());
         usuario.setEmail(email);
         usuario.setSenha(passwordEncoder.encode(req.senha()));
-        usuario.setRole(Role.LOJA); // cadastro público nunca permite criar ADMIN
+        usuario.setRole(role);
         usuario = usuarioRepository.save(usuario);
-        Loja loja = new Loja();
-        loja.setUsuario(usuario);
-        loja.setNome(usuario.getNome());
-        loja.setWhatsapp(req.whatsapp());
-        lojaRepository.save(loja);
+
+        if (role == Role.LOJA) {
+            String whatsapp = req.whatsapp() != null ? req.whatsapp() : "00000000000";
+            Loja loja = new Loja();
+            loja.setNome(req.nome().trim());
+            loja.setWhatsapp(whatsapp);
+            loja.setUsuario(usuario);
+            lojaRepository.save(loja);
+        }
+
         return montarResposta(usuario);
     }
 
     public AuthResponse login(LoginRequest req) {
         String email = req.email().trim().toLowerCase();
 
-        // mesma mensagem para e-mail inexistente e senha errada (não revela quais e-mails existem)
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .filter(u -> passwordEncoder.matches(req.senha(), u.getSenha()))
                 .orElseThrow(() -> new ResponseStatusException(

@@ -1,7 +1,9 @@
 package com.isac.bazar_solidario.dto;
 
+import com.isac.bazar_solidario.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record RegistroRequest(
@@ -17,8 +19,9 @@ public record RegistroRequest(
         @Size(min = 6, max = 72, message = "Senha deve ter entre 6 e 72 caracteres")
         String senha,
 
-        @jakarta.validation.constraints.NotBlank(message = "WhatsApp é obrigatório")
-        @jakarta.validation.constraints.Pattern(regexp = "^[0-9]{10,13}$", message = "WhatsApp deve conter de 10 a 13 dígitos, com DDI e DDD")
+        Role tipo,
+
+        @Pattern(regexp = "^[0-9]{10,13}$", message = "WhatsApp deve conter de 10 a 13 dígitos, com DDI e DDD")
         String whatsapp
 ) {
 }

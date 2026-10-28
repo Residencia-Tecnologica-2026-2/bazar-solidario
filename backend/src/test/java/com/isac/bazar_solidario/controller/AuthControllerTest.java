@@ -8,8 +8,6 @@ import com.isac.bazar_solidario.model.Usuario;
 import com.isac.bazar_solidario.security.JwtService;
 import com.isac.bazar_solidario.service.AnuncioService;
 import com.isac.bazar_solidario.service.CategoriaService;
-import com.isac.bazar_solidario.service.LojaAutenticadaService;
-import com.isac.bazar_solidario.service.LojaAutenticadaService;
 import com.isac.bazar_solidario.service.UsuarioAutenticadoService;
 import com.isac.bazar_solidario.service.UsuarioService;
 import org.junit.jupiter.api.Test;
@@ -29,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Usa o SecurityConfig REAL + filtro JWT real (só o banco/service é simulado). */
-@WebMvcTest({AuthController.class, UsuarioController.class, LojaController.class, AnuncioController.class, CategoriaController.class})
+@WebMvcTest({AuthController.class, UsuarioController.class, AnuncioController.class, CategoriaController.class})
 @Import({SecurityConfig.class, JwtService.class})
 @TestPropertySource(properties = {
         "jwt.secret=uma-chave-de-teste-com-mais-de-32-caracteres!!",
@@ -40,19 +38,17 @@ class AuthControllerTest {
     @Autowired JwtService jwtService;
 
     @MockitoBean UsuarioService usuarioService;
-    @MockitoBean com.isac.bazar_solidario.service.LojaService lojaService;
     @MockitoBean UsuarioAutenticadoService autenticadoService;
     @MockitoBean AnuncioService anuncioService;
     @MockitoBean CategoriaService categoriaService;
-    @MockitoBean LojaAutenticadaService lojaAutenticada;
 
     @Test
     void cadastroEPublicoDevolveTokenEnaoVazaSenha() throws Exception {
         when(usuarioService.cadastrar(any())).thenReturn(AuthResponse.de("tok", 1000,
-                new UsuarioResponse(1L, "Ana", "ana@x.com", "LOJA")));
+                new UsuarioResponse(1L, "Ana", "ana@x.com", "CLIENTE")));
 
         mockMvc.perform(post("/usuarios").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nome\":\"Ana\",\"email\":\"ana@x.com\",\"senha\":\"123456\",\"whatsapp\":\"5581999999999\"}"))
+                        .content("{\"nome\":\"Ana\",\"email\":\"ana@x.com\",\"senha\":\"123456\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").value("tok"))
                 .andExpect(jsonPath("$.usuario.senha").doesNotExist());
@@ -61,7 +57,7 @@ class AuthControllerTest {
     @Test
     void cadastroInvalidoRetorna400() throws Exception {
         mockMvc.perform(post("/usuarios").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nome\":\"\",\"email\":\"x\",\"senha\":\"1\",\"whatsapp\":\"1\"}"))
+                        .content("{\"nome\":\"\",\"email\":\"x\",\"senha\":\"1\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos.email").exists())
                 .andExpect(jsonPath("$.campos.senha").exists());
@@ -81,38 +77,13 @@ class AuthControllerTest {
 
     @Test
     void tokenValidoAcessaRotaProtegida() throws Exception {
-        Usuario u = new Usuario(1L, "Ana", "ana@x.com", "hash", Role.LOJA);
+        Usuario u = new Usuario(1L, "Ana", "ana@x.com", "hash", Role.CLIENTE);
         when(autenticadoService.obter(any())).thenReturn(u);
-        String token = jwtService.gerarToken("ana@x.com", "LOJA");
+        String token = jwtService.gerarToken("ana@x.com", "CLIENTE");
 
         mockMvc.perform(get("/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("ana@x.com"));
-    }
-
-    @Test
-    void listagemDeLojasPublicaFuncionaSemToken() throws Exception {
-        when(lojaService.listar(any())).thenReturn(new com.isac.bazar_solidario.dto.PageResponse<>(java.util.List.of(), 0, 20, 0, 0, true, true));
-        mockMvc.perform(get("/lojas")).andExpect(status().isOk());
-    }
-
-    @Test
-    void perfilDaLojaExigeToken() throws Exception {
-        mockMvc.perform(get("/lojas/me")).andExpect(status().isUnauthorized());
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/lojas/me")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nome\":\"Ana\",\"whatsapp\":\"5581999999999\"}"))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void perfilDaPropriaLojaAceitaTokenLoja() throws Exception {
-        when(lojaService.minhaLoja(any())).thenReturn(
-                new com.isac.bazar_solidario.dto.LojaResponse(1L, "Ana", null, null, null, null, null, "5581999999999"));
-        String token = jwtService.gerarToken("ana@x.com", "LOJA");
-        mockMvc.perform(get("/lojas/me").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value("Ana"));
     }
 
     @Test

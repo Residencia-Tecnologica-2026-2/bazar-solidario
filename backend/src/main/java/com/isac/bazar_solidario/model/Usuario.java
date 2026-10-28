@@ -1,11 +1,13 @@
 package com.isac.bazar_solidario.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "usuarios")
+@AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class Usuario {
@@ -25,11 +27,4 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    public Usuario(Long id, String nome, String email, String senha, Role role) {
-        this.id = id;
-        this.nome = nome;
-        this.email = email;
-        this.senha = senha;
-        this.role = role;
-    }
 }
