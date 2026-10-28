@@ -7,27 +7,38 @@
   "settings": {
     "files.exclude": {
       "**/node_modules": true,
-      "**/target": true
+      "**/target": true,
+      "**/dados": true,
+      "**/.local-secrets.properties": true
     }
   },
   "tasks": {
     "version": "2.0.0",
     "tasks": [
       {
+        "label": "ISAC: preparar ambiente (primeira vez)",
+        "type": "shell",
+        "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./PREPARAR-AMBIENTE.ps1",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": []
+      },
+      {
         "label": "ISAC: backend local",
         "type": "shell",
-        "command": ".\\mvnw.cmd -Plocal \"-Dspring-boot.run.profiles=local\" spring-boot:run",
+        "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./INICIAR-BACKEND.ps1",
         "options": {
-          "cwd": "${workspaceFolder}/backend"
+          "cwd": "${workspaceFolder}"
         },
         "problemMatcher": []
       },
       {
         "label": "ISAC: frontend",
         "type": "shell",
-        "command": "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4186 --strictPort",
+        "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./INICIAR-FRONTEND.ps1",
         "options": {
-          "cwd": "${workspaceFolder}/frontend"
+          "cwd": "${workspaceFolder}"
         },
         "problemMatcher": []
       },
@@ -38,6 +49,33 @@
           "ISAC: frontend"
         ],
         "dependsOrder": "parallel",
+        "problemMatcher": []
+      },
+      {
+        "label": "ISAC: testes frontend",
+        "type": "shell",
+        "command": "npm test",
+        "options": {
+          "cwd": "${workspaceFolder}/frontend"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "ISAC: build frontend",
+        "type": "shell",
+        "command": "npm run build",
+        "options": {
+          "cwd": "${workspaceFolder}/frontend"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "ISAC: testes backend",
+        "type": "shell",
+        "command": ".\\mvnw.cmd test",
+        "options": {
+          "cwd": "${workspaceFolder}/backend"
+        },
         "problemMatcher": []
       }
     ]

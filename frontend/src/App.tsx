@@ -1,10 +1,33 @@
 import { X } from "lucide-react";
-import { Heart, ShoppingBag, Search, Leaf, HandHeart, Home, UserRound, Shirt, CalendarDays } from "./components/IsacIcons";
-import { ClothingIcon, AccessoriesIcon, ShoesIcon, SavedIcon } from "./components/IsacIcons";
-import { useEffect, useRef, useState, type ComponentType } from "react";
+import {
+  Heart,
+  ShoppingBag,
+  Search,
+  Leaf,
+  HandHeart,
+  Home,
+  UserRound,
+  Shirt,
+  CalendarDays,
+} from "./components/IsacIcons";
+import {
+  ClothingIcon,
+  AccessoriesIcon,
+  ShoesIcon,
+  SavedIcon,
+} from "./components/IsacIcons";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import {
   Link,
   NavLink,
+  Navigate,
   Route,
   Routes,
   useLocation,
@@ -15,7 +38,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   Plus,
-
   SlidersHorizontal,
   MapPin,
   ChevronRight,
@@ -25,28 +47,40 @@ import {
   Trash2,
   CheckCircle2,
 } from "./components/IsacIcons";
-import { events, photo, products, type Product } from "./data/store";
+import { photo, type Product } from "./data/store";
 import "./styles/mobile.css";
 import { Brand } from "./components/Brand";
 import { brand } from "./config/brand";
 import "./styles/urban.css";
 import { Cadastro } from "./components/Cadastro";
 import { Login } from "./components/Login";
-import { ProdutosLoja, PecasPublicadas } from "./components/ProdutosLoja";
+import { ProdutosLoja } from "./components/ProdutosLoja";
+import { Pedidos } from "./components/Pedidos";
+import { api, fotoAnuncio, type Anuncio } from "./services/anuncios";
+import { Comunidade } from "./components/Comunidade";
 import { Pagamento } from "./components/Pagamento";
 import { obterSessao, limparSessao } from "./services/usuarios";
 
 import { CatalogoService } from "./services/CatalogoService";
 import { SacolaService } from "./services/SacolaService";
 
-const catalogo = new CatalogoService(products);
-const sacola = new SacolaService(products);
+const ProdutosContext = createContext<Product[]>([]);
 
 const money = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 function savedIds(key: string): number[] {
   try {
-    return sacola.restaurar(localStorage.getItem(key));
+    const ids = JSON.parse(localStorage.getItem(key + "-api") || "[]");
+    return Array.isArray(ids)
+      ? [
+          ...new Set(
+            ids.filter(
+              (id: unknown): id is number =>
+                Number.isSafeInteger(id) && Number(id) > 0,
+            ),
+          ),
+        ]
+      : [];
   } catch {
     return [];
   }
@@ -72,6 +106,12 @@ function Catalog({
   Empty,
   search,
 }: CatalogProps) {
+  const vendedor = new URLSearchParams(search).get("vendedor");
+  const catalogo = new CatalogoService(
+    useContext(ProdutosContext).filter(
+      (p) => !vendedor || String(p.vendedorId) === vendedor,
+    ),
+  );
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(
     new URLSearchParams(search).get("categoria") || "Todos",
@@ -82,7 +122,14 @@ function Catalog({
   useEffect(() => {
     setCategory(new URLSearchParams(search).get("categoria") || "Todos");
   }, [search, favoritesOnly]);
-  const items = catalogo.buscar({ query, category, size, sort, favoritesOnly, favorites });
+  const items = catalogo.buscar({
+    query,
+    category,
+    size,
+    sort,
+    favoritesOnly,
+    favorites,
+  });
   return (
     <>
       <Heading
@@ -94,7 +141,11 @@ function Catalog({
             : "Uma curadoria para o seu próximo capítulo."
         }
       />
-      {!favoritesOnly && <Link className="shop-public-entry text-button" to="/pecas-das-lojas">Ver peças publicadas pelas lojas <ArrowRight size={16}/></Link>}
+      {!favoritesOnly && (
+        <Link className="shop-public-entry text-button" to="/pecas-das-lojas">
+          Ver peças publicadas pelas lojas <ArrowRight size={16} />
+        </Link>
+      )}
       <div className="search-field">
         <Search size={19} />
         <input
@@ -125,14 +176,7 @@ function Catalog({
       </div>
       {filters && (
         <div className="filter-panel">
-          <label>
-            Tamanho
-            <select value={size} onChange={(e) => setSize(e.target.value)}>
-              {["Todos", "P", "M", "G", "38", "Único"].map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          </label>
+          <p>Consulte tamanho e medidas na descrição de cada peça.</p>
           <button
             className="text-button"
             onClick={() => {
@@ -166,31 +210,84 @@ function Catalog({
           text="Tente outra busca ou explore o catálogo para salvar suas peças favoritas."
         />
       )}
-      <p className="demo-note">
-        Peças, preços e brechós ilustrativos do projeto.
-      </p>
+      <p className="demo-note">Peças publicadas pelos brechós cadastrados.</p>
     </>
   );
 }
 
 export default function App() {
+  const location = useLocation();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [catalogError, setCatalogError] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [refresh, setRefresh] = useState(0);
+  const sacola = new SacolaService(products);
+  useEffect(() => {
+    let ativo = true;
+    setCatalogLoading(true);
+    (async () => {
+      const todos: Anuncio[] = [];
+      let page = 0;
+      while (true) {
+        const resposta = await api<{ content: Anuncio[]; last: boolean }>(
+          `/anuncios?page=${page}&size=100`,
+        );
+        todos.push(...resposta.content);
+        if (resposta.last) break;
+        page++;
+      }
+      if (ativo) {
+        setProducts(
+          todos
+            .filter((a) => a.estoque > 0)
+            .map((a) => ({
+              id: a.id,
+              name: a.titulo,
+              description: a.descricao || "",
+              category: a.categoria.nome,
+              size: "Ver descrição",
+              price: a.preco,
+              shop: a.vendedor?.nome || a.loja?.nome || "Brechó",
+              vendedorId: a.vendedor?.id || a.loja?.id,
+              color: "Ver descrição",
+              image: a.imagens[0]
+                ? fotoAnuncio(a.imagens[0])
+                : "/brand/isac-oficial.svg",
+            })),
+        );
+        setCatalogError("");
+      }
+    })()
+      .catch(() => {
+        if (ativo)
+          setCatalogError(
+            "Não foi possível carregar as peças. Confira a conexão com o servidor.",
+          );
+      })
+      .finally(() => {
+        if (ativo) setCatalogLoading(false);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [refresh, location.pathname]);
+
   const [cart, setCart] = useState(() => savedIds("bs-cart"));
   const [favorites, setFavorites] = useState(() => savedIds("bs-favorites"));
   const [notice, setNotice] = useState("");
   const [intro, setIntro] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout>>();
-  const location = useLocation();
   const navigate = useNavigate();
   useEffect(() => {
     try {
-      localStorage.setItem("bs-cart", JSON.stringify(cart));
+      localStorage.setItem("bs-cart-api", JSON.stringify(cart));
     } catch {
       /* Storage may be disabled. */
     }
   }, [cart]);
   useEffect(() => {
     try {
-      localStorage.setItem("bs-favorites", JSON.stringify(favorites));
+      localStorage.setItem("bs-favorites-api", JSON.stringify(favorites));
     } catch {
       /* Storage may be disabled. */
     }
@@ -200,12 +297,31 @@ export default function App() {
     document.getElementById("conteudo")?.focus({ preventScroll: true });
   }, [location.pathname]);
   useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => {
+    const atualizar = () => setRefresh((v) => v + 1);
+    window.addEventListener("catalogo-atualizado", atualizar);
+    return () => window.removeEventListener("catalogo-atualizado", atualizar);
+  }, []);
+  useEffect(() => {
+    if (obterSessao())
+      api("/auth/me", {}, "sessao").catch(() => {
+        /* 401 limpa a sessão; falhas de rede permitem nova tentativa. */
+      });
+  }, []);
   function notify(text: string) {
     setNotice(text);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setNotice(""), 4500);
   }
   function add(id: number) {
+    const existente = products.find((p) => p.id === cart[0]);
+    const novo = products.find((p) => p.id === id);
+    if (existente && novo && existente.vendedorId !== novo.vendedorId) {
+      notify(
+        "Finalize ou esvazie a sacola antes de escolher peças de outro brechó.",
+      );
+      return;
+    }
     if (cart.includes(id)) notify("Esta peça já está na sua sacola.");
     else {
       setCart((atual) => sacola.adicionar(atual, id));
@@ -420,7 +536,7 @@ export default function App() {
           <ArrowUpRight size={20} />
         </Link>
         <p className="demo-note">
-          Projeto demonstrativo · catálogo e lojas ilustrativos.
+          Catálogo dos brechós cadastrados · 10% das compras para a ISAC.
         </p>
       </>
     );
@@ -435,7 +551,7 @@ export default function App() {
         <div className="detail-photo">
           <img src={photo(p.image, 1000)} alt={p.name} />
           <span className="detail-badge">
-            <CheckCircle2 size={15} /> Peça única
+            <CheckCircle2 size={15} /> Peça publicada
           </span>
           <button
             className={`favorite ${favorites.includes(p.id) ? "selected" : ""}`}
@@ -464,7 +580,7 @@ export default function App() {
           </div>
           <div>
             <span>Condição</span>
-            <strong>Muito bom</strong>
+            <strong>Ver descrição</strong>
           </div>
         </div>
         <h2 className="small-title">Uma peça, novas possibilidades</h2>
@@ -472,8 +588,8 @@ export default function App() {
         <div className="info-box">
           <HandHeart size={22} />
           <p>
-            O projeto propõe destinar parte das vendas à ONG parceira. Os
-            repasses serão definidos no piloto.
+            10% do valor dos produtos é destinado à ISAC e 90% ao brechó. Os
+            repasses são conciliados manualmente.
           </p>
         </div>
         <details className="disclosure">
@@ -482,9 +598,8 @@ export default function App() {
             <Plus size={16} />
           </summary>
           <p>
-            As condições serão informadas por cada parceiro antes de uma venda
-            real. Esta peça é ilustrativa; medidas, materiais e disponibilidade
-            não estão verificados.
+            Combine retirada, entrega e condições de troca com o brechó antes de
+            pagar. Confira medidas e estado da peça na descrição.
           </p>
         </details>
         <button className="btn full" onClick={() => add(p.id)}>
@@ -493,7 +608,7 @@ export default function App() {
           <ArrowRight size={18} />
         </button>
         <p className="demo-note">
-          Sem compra ou reserva real nesta demonstração.
+          O pedido reserva estoque. Nenhum pagamento é processado online.
         </p>
         <section>
           <SectionTitle title="Outros bons encontros" />
@@ -551,7 +666,9 @@ export default function App() {
                   </div>
                   <button
                     aria-label={`Remover ${p.name}`}
-                    onClick={() => setCart((atual) => sacola.remover(atual, p.id))}
+                    onClick={() =>
+                      setCart((atual) => sacola.remover(atual, p.id))
+                    }
                   >
                     <Trash2 size={18} />
                   </button>
@@ -576,7 +693,8 @@ export default function App() {
                 Continuar <ArrowRight size={18} />
               </Link>
               <p className="demo-note">
-                Demonstração sem pagamento ou reserva.
+                A reserva é feita ao registrar o pedido. Pagamento combinado com
+                o brechó.
               </p>
             </div>
             <Link className="center-link" to="/catalogo">
@@ -593,99 +711,61 @@ export default function App() {
     );
   }
   function Checkout() {
+    if (catalogLoading)
+      return <p role="status">Conferindo as peças da sacola…</p>;
+    if (cart.some((id) => !products.some((p) => p.id === id)))
+      return (
+        <div className="info-box">
+          <p>
+            Uma peça saiu do catálogo ou ficou sem estoque. Atualize a sacola
+            antes de continuar.
+          </p>
+          <button
+            className="btn"
+            onClick={() =>
+              setCart((ids) =>
+                ids.filter((id) => products.some((p) => p.id === id)),
+              )
+            }
+          >
+            Remover peças indisponíveis
+          </button>
+        </div>
+      );
+
     if (!cart.length)
       return (
         <Empty
           title="Sua sacola está vazia"
-          text="Escolha uma peça antes de simular um pedido."
+          text="Escolha uma peça antes de registrar um pedido."
         />
       );
     return (
       <>
         <Heading
-          eyebrow="PRÉVIA DO PEDIDO"
+          eyebrow="PEDIDO COM CONFIRMAÇÃO MANUAL"
           title="Um passo para um novo ciclo."
         />
         <Pagamento
           subtotal={sacola.subtotal(cart)}
-          onSucesso={() => {}}
+          ids={cart}
+          onSucesso={() => {
+            sessionStorage.removeItem(
+              "bs-checkout-" + obterSessao()?.usuario.id,
+            );
+            setCart([]);
+            setRefresh((v) => v + 1);
+            navigate("/pedidos");
+          }}
         />
       </>
     );
   }
   function EventCards({ compact = false }: { compact?: boolean }) {
-    return (
-      <div className="event-list">
-        {events.slice(0, compact ? 1 : 2).map((e) => (
-          <Link className="event-card" to={`/eventos/${e.id}`} key={e.id}>
-            <img
-              src={photo(e.photo, 800)}
-              alt="Fotografia ilustrativa de roupas em uma arara de feira ao ar livre"
-              loading="lazy"
-            />
-            <div>
-              <p className="eyebrow">{e.kind} · PROPOSTA PILOTO</p>
-              <h2>{e.name}</h2>
-              <p>
-                <CalendarDays size={14} /> Data a confirmar
-              </p>
-              <p>
-                <MapPin size={14} /> Local a definir com a ONG
-              </p>
-              <span>
-                Conhecer o encontro <ArrowUpRight size={16} />
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
-    );
+    return <Comunidade tipo="encontros" compact={compact} />;
   }
   function EventsPage() {
-    const event = events.find((e) => location.pathname === `/eventos/${e.id}`);
-    return (
-      <>
-        <Heading
-          eyebrow="CONEXÕES FORA DA TELA"
-          title={event ? event.name : "Vamos nos encontrar?"}
-          subtitle="Um espaço para circular peças e aproximar pessoas."
-        />
-        {event ? (
-          <>
-            <img
-              className="event-detail"
-              src={photo(event.photo, 900)}
-              alt="Araras de roupas em uma loja"
-            />
-            <div className="event-info">
-              <p>
-                <CalendarDays size={18} /> Data a confirmar
-              </p>
-              <p>
-                <MapPin size={18} /> Local a definir com a ONG parceira
-              </p>
-            </div>
-            <p className="body-copy">{event.description}</p>
-            <p className="body-copy">
-              As condições de participação serão divulgadas após a confirmação
-              do piloto. Nenhum evento está confirmado nesta versão.
-            </p>
-            <LocalForm title="Quero saber quando acontecer" kind="evento" />
-          </>
-        ) : (
-          <>
-            <div className="info-box">
-              <Info size={19} />
-              <p>
-                Encontros propostos para o piloto. Datas e locais ainda serão
-                definidos.
-              </p>
-            </div>
-            <EventCards />
-          </>
-        )}
-      </>
-    );
+    return <Comunidade tipo="encontros" />;
   }
   function LocalForm({ title, kind }: { title: string; kind: string }) {
     const [done, setDone] = useState(false);
@@ -804,7 +884,7 @@ export default function App() {
             [
               "03",
               "Fortaleça a comunidade",
-              "Parte das vendas e da participação nos encontros poderá apoiar a ONG. Os valores serão acordados no piloto.",
+              "10% do valor dos produtos de cada pedido é destinado à ISAC e 90% ao brechó. Não há repasse automático neste MVP.",
             ],
           ].map(([n, t, d]) => (
             <article key={n}>
@@ -858,13 +938,13 @@ export default function App() {
           <Info size={20} />
           <p>
             O piloto está em formação. Não há parceiros confirmados nesta
-            demonstração; os nomes das lojas no catálogo são ilustrativos.
+            aplicativo; o catálogo mostra as lojas cadastradas no servidor.
           </p>
         </div>
         <h2 className="small-title">Uma parceria transparente</h2>
         <p className="body-copy">
-          Comissões, taxas dos encontros e divisão dos valores serão validadas
-          com os parceiros antes das vendas reais. A próxima etapa prevê
+          A divisão dos produtos é de 10% para a ISAC e 90% para o brechó. Taxas
+          de encontros não são cobradas nesta versão. A próxima etapa prevê
           conectar outras ONGs para circulação de peças excedentes.
         </p>
         <Link className="btn full" to="/vender">
@@ -888,7 +968,9 @@ export default function App() {
       <>
         <Heading
           eyebrow="SEU ESPAÇO NO BRECHÓ"
-          title={usuario ? `Olá, ${usuario.nome.split(" ")[0]}.` : "Olá, visitante."}
+          title={
+            usuario ? `Olá, ${usuario.nome.split(" ")[0]}.` : "Olá, visitante."
+          }
           subtitle="Seu estilo. Suas histórias. Seus próximos achados."
         />
         <div className="profile-card">
@@ -898,13 +980,31 @@ export default function App() {
           {usuario ? (
             <div>
               <h2>{usuario.nome}</h2>
-              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 6 }}>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "var(--color-text-secondary)",
+                  marginBottom: 6,
+                }}
+              >
                 {usuario.email}
               </p>
-              <p style={{ fontSize: 11, letterSpacing: 1.2, fontWeight: 700, color: "var(--color-secondary)", marginBottom: 10 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  letterSpacing: 1.2,
+                  fontWeight: 700,
+                  color: "var(--color-secondary)",
+                  marginBottom: 10,
+                }}
+              >
                 {isLoja ? "BAZAR / BRECHÓ" : "USUÁRIO"}
               </p>
-              <button className="text-button" onClick={sair} style={{ fontSize: 13 }}>
+              <button
+                className="text-button"
+                onClick={sair}
+                style={{ fontSize: 13 }}
+              >
                 Sair da conta
               </button>
             </div>
@@ -912,7 +1012,14 @@ export default function App() {
             <div>
               <h2>Vamos nos conhecer?</h2>
               <p>Explore o app sem precisar de cadastro.</p>
-              <div style={{ display: "flex", gap: 14, marginTop: 4, flexWrap: "wrap" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  marginTop: 4,
+                  flexWrap: "wrap",
+                }}
+              >
                 <Link className="text-button" to="/login">
                   Fazer login <ArrowRight size={15} />
                 </Link>
@@ -923,8 +1030,18 @@ export default function App() {
             </div>
           )}
         </div>
-        {isLoja && <Link className="btn full shop-entry" to="/loja/produtos"><Plus size={20}/> Cadastrar e gerenciar minhas peças <ArrowRight size={18}/></Link>}
-        <Link className="text-button shop-public-entry" to="/pecas-das-lojas">Ver peças publicadas pelos brechós <ArrowRight size={16}/></Link>
+        <Link className="btn full shop-entry" to="/pedidos">
+          {isLoja ? "Gerenciar pedidos recebidos" : "Acompanhar meus pedidos"}
+        </Link>
+        {isLoja && (
+          <Link className="btn full shop-entry" to="/loja/produtos">
+            <Plus size={20} /> Cadastrar e gerenciar minhas peças{" "}
+            <ArrowRight size={18} />
+          </Link>
+        )}
+        <Link className="text-button shop-public-entry" to="/pecas-das-lojas">
+          Ver peças publicadas pelos brechós <ArrowRight size={16} />
+        </Link>
         <div className="menu-list">
           {[
             ["/favoritos", "Meus favoritos", Heart, favorites.length],
@@ -963,11 +1080,11 @@ export default function App() {
         {[
           [
             "Posso comprar de verdade?",
-            "Esta é uma demonstração do front-end. Explore peças, salve favoritos e simule a sacola. Pagamentos, reservas e pedidos reais dependem da integração com o backend.",
+            "Explore peças cadastradas, salve favoritos e registre um pedido por brechó. O estoque é reservado e a loja confirma manualmente. Não há pagamento online.",
           ],
           [
             "Como a compra apoia a ONG?",
-            "A proposta prevê comissões sobre vendas e renda dos encontros presenciais. Os percentuais serão definidos com os parceiros no piloto.",
+            "10% do valor dos produtos é destinado à ISAC e 90% ao brechó. A divisão é registrada no pedido e o repasse é conciliado manualmente.",
           ],
           [
             "Como posso doar roupas?",
@@ -1068,201 +1185,219 @@ export default function App() {
     "/eventos": "Encontros",
     "/sobre": "Nosso propósito",
     "/vender": "Faça parte",
-    "/checkout": "Pagamento",
+    "/checkout": "Pedido",
+    "/pedidos": "Pedidos",
     "/cadastro": "Cadastro",
     "/login": "Entrar",
   };
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#conteudo">
-        Ir para o conteúdo
-      </a>
-      <header className="app-header">
-        {location.pathname === "/" ? (
-          <Link className="brand" to="/" aria-label={`${brand.name} início`}>
-            <Brand />
-          </Link>
-        ) : (
-          <>
-            <button
-              className="back-button"
-              aria-label="Voltar"
-              onClick={() =>
-                location.key === "default" ? navigate("/") : navigate(-1)
-              }
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <span className="header-title">
-              {titles[location.pathname] || "Bazar Solidário"}
-            </span>
-          </>
-        )}
-        <Link
-          className="header-bag"
-          to="/carrinho"
-          aria-label={`Sacola com ${cart.length} peças`}
-        >
-          <ShoppingBag size={21} />
-          <span>{cart.length}</span>
-        </Link>
-      </header>
-      <main id="conteudo" tabIndex={-1}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route
-            path="/catalogo"
-            element={
-              <Catalog
-                favorites={favorites}
-                Cards={Cards}
-                Heading={Heading}
-                Empty={Empty}
-                search={location.search}
-              />
-            }
-          />
-          <Route
-            path="/favoritos"
-            element={
-              <Catalog
-                favoritesOnly
-                favorites={favorites}
-                Cards={Cards}
-                Heading={Heading}
-                Empty={Empty}
-                search={location.search}
-              />
-            }
-          />
-          <Route path="/peca/:id" element={<ProductPage />} />
-          <Route path="/carrinho" element={<CartPage />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/perfil" element={<Profile />} />
-          <Route path="/eventos" element={<EventsPage />} />
-          <Route path="/eventos/:id" element={<EventsPage />} />
-          <Route path="/sobre" element={<About />} />
-          <Route path="/como-funciona" element={<About />} />
-          <Route path="/ongs" element={<Partners ngo />} />
-          <Route path="/brechos" element={<Partners />} />
-          <Route
-            path="/vender"
-            element={
-              <>
-                <Heading
-                  eyebrow="VAMOS CONSTRUIR JUNTOS"
-                  title="Sua história também cabe aqui."
-                  subtitle="Para brechós, ONGs e pessoas que querem fazer parte."
-                />
-                <LocalForm title="Vamos nos conhecer" kind="parceria" />
-              </>
-            }
-          />
-          <Route
-            path="/contato"
-            element={
-              <>
-                <Heading
-                  title="Vamos conversar?"
-                  subtitle="Um espaço para dúvidas e novas ideias."
-                />
-                <LocalForm title="Sua mensagem" kind="contato" />
-              </>
-            }
-          />
-          <Route path="/cadastro" element={<Cadastro />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/loja/produtos" element={<ProdutosLoja />} />
-          <Route path="/pecas-das-lojas" element={<PecasPublicadas />} />
-          <Route path="/boas-vindas" element={<Onboarding />} />
-          <Route path="/faq" element={<Faq />} />
-          <Route
-            path="/privacidade"
-            element={
-              <>
-                <Heading title="Sua privacidade." />
-                <p className="body-copy">
-                  A sacola e os favoritos ficam no armazenamento local do seu
-                  navegador. O cadastro envia nome, e-mail e senha ao servidor
-                  do projeto. A senha não é salva no navegador. Os formulários
-                  de contato, parceria e eventos continuam sendo prévias sem
-                  envio. Nenhum pagamento é processado.
-                </p>
-                <h2 className="small-title">Fotografias externas</h2>
-                <p className="body-copy">
-                  Parte das imagens ilustrativas é carregada do Unsplash. Seu
-                  navegador se conecta a esse serviço para exibi-las. As imagens
-                  da bolsa caramelo e do tênis casual foram geradas com IA para
-                  este catálogo demonstrativo e não representam peças à venda.
-                </p>
-                <button
-                  className="btn full"
-                  onClick={() => {
-                    setCart([]);
-                    setFavorites([]);
-                    notify("Sacola e favoritos foram apagados.");
-                  }}
-                >
-                  Apagar meus dados locais <Trash2 size={18} />
-                </button>
-                <p className="body-copy">
-                  Uma política completa deverá ser definida antes do lançamento
-                  dos serviços integrados.
-                </p>
-              </>
-            }
-          />
-          <Route
-            path="/termos"
-            element={
-              <>
-                <Heading title="Sobre esta versão." />
-                <p className="body-copy">
-                  Este app web é um protótipo em React e TypeScript. Produtos,
-                  preços e nomes de lojas são exemplos; encontros não têm data
-                  ou local confirmados.
-                </p>
-                <p className="body-copy">
-                  A sacola não realiza compra ou reserva. O cadastro de usuários
-                  está conectado ao backend. Os formulários de contato, parceria
-                  e eventos não efetuam envio ou inscrição. Regras de venda e
-                  parceria serão estabelecidas antes do lançamento real.
-                </p>
-              </>
-            }
-          />
-          <Route path="*" element={<Missing />} />
-        </Routes>
-      </main>
-      <nav className="bottom-nav" aria-label="Navegação principal">
-        {[
-          ["/", "Início", Home],
-          ["/catalogo", "Explorar", Search],
-          ["/favoritos", "Salvos", Heart],
-          ["/eventos", "Encontros", CalendarDays],
-          ["/perfil", "Perfil", UserRound],
-        ].map(([url, label, Icon]) => {
-          const C = Icon as typeof Home;
-          return (
-            <NavLink end={url === "/"} key={url as string} to={url as string}>
-              <span>
-                <C size={21} strokeWidth={1.7} />
+      <ProdutosContext.Provider value={products}>
+        <a className="skip-link" href="#conteudo">
+          Ir para o conteúdo
+        </a>
+        <header className="app-header">
+          {location.pathname === "/" ? (
+            <Link className="brand" to="/" aria-label={`${brand.name} início`}>
+              <Brand />
+            </Link>
+          ) : (
+            <>
+              <button
+                className="back-button"
+                aria-label="Voltar"
+                onClick={() =>
+                  location.key === "default" ? navigate("/") : navigate(-1)
+                }
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <span className="header-title">
+                {titles[location.pathname] || "Bazar Solidário"}
               </span>
-              {label as string}
-            </NavLink>
-          );
-        })}
-      </nav>
-      {notice && (
-        <div className="toast" role="status">
-          <Check size={18} />
-          <span>{notice}</span>
-          <button aria-label="Fechar aviso" onClick={() => setNotice("")}>
-            <X size={17} />
-          </button>
-        </div>
-      )}
+            </>
+          )}
+          <Link
+            className="header-bag"
+            to="/carrinho"
+            aria-label={`Sacola com ${cart.length} peças`}
+          >
+            <ShoppingBag size={21} />
+            <span>{cart.length}</span>
+          </Link>
+        </header>
+        <main id="conteudo" tabIndex={-1}>
+          {catalogLoading && <p role="status">Carregando catálogo…</p>}
+          {catalogError && (
+            <div role="alert">
+              <p>{catalogError}</p>
+              <button onClick={() => setRefresh((v) => v + 1)}>
+                Tentar novamente
+              </button>
+            </div>
+          )}
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/catalogo"
+              element={
+                <Catalog
+                  favorites={favorites}
+                  Cards={Cards}
+                  Heading={Heading}
+                  Empty={Empty}
+                  search={location.search}
+                />
+              }
+            />
+            <Route
+              path="/favoritos"
+              element={
+                <Catalog
+                  favoritesOnly
+                  favorites={favorites}
+                  Cards={Cards}
+                  Heading={Heading}
+                  Empty={Empty}
+                  search={location.search}
+                />
+              }
+            />
+            <Route path="/peca/:id" element={<ProductPage />} />
+            <Route path="/carrinho" element={<CartPage />} />
+            <Route path="/pedidos" element={<Pedidos />} />
+            <Route path="/checkout" element={Checkout()} />
+            <Route path="/perfil" element={<Profile />} />
+            <Route path="/eventos" element={<EventsPage />} />
+            <Route path="/eventos/:id" element={<EventsPage />} />
+            <Route path="/sobre" element={<About />} />
+            <Route path="/como-funciona" element={<About />} />
+            <Route path="/ongs" element={<Partners ngo />} />
+            <Route path="/brechos" element={<Comunidade tipo="lojas" />} />
+            <Route
+              path="/vender"
+              element={
+                <>
+                  <Heading
+                    eyebrow="VAMOS CONSTRUIR JUNTOS"
+                    title="Sua história também cabe aqui."
+                    subtitle="Para brechós, ONGs e pessoas que querem fazer parte."
+                  />
+                  <LocalForm title="Vamos nos conhecer" kind="parceria" />
+                </>
+              }
+            />
+            <Route
+              path="/contato"
+              element={
+                <>
+                  <Heading
+                    title="Vamos conversar?"
+                    subtitle="Um espaço para dúvidas e novas ideias."
+                  />
+                  <LocalForm title="Sua mensagem" kind="contato" />
+                </>
+              }
+            />
+            <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/loja/produtos" element={<ProdutosLoja />} />
+            <Route
+              path="/pecas-das-lojas"
+              element={<Navigate to="/catalogo" replace />}
+            />
+            <Route path="/boas-vindas" element={<Onboarding />} />
+            <Route path="/faq" element={<Faq />} />
+            <Route
+              path="/privacidade"
+              element={
+                <>
+                  <Heading title="Sua privacidade." />
+                  <p className="body-copy">
+                    A sacola e os favoritos ficam no armazenamento local do seu
+                    navegador. O cadastro envia nome, e-mail e senha ao servidor
+                    do projeto. A senha não é salva no navegador. Os formulários
+                    de contato, parceria e eventos continuam sendo prévias sem
+                    envio. Nenhum pagamento é processado.
+                  </p>
+                  <h2 className="small-title">Fotografias externas</h2>
+                  <p className="body-copy">
+                    Parte das imagens ilustrativas é carregada do Unsplash. Seu
+                    navegador se conecta a esse serviço para exibi-las. As
+                    imagens da bolsa caramelo e do tênis casual foram geradas
+                    com IA para este catálogo demonstrativo e não representam
+                    peças à venda.
+                  </p>
+                  <button
+                    className="btn full"
+                    onClick={() => {
+                      setCart([]);
+                      setFavorites([]);
+                      notify("Sacola e favoritos foram apagados.");
+                    }}
+                  >
+                    Apagar meus dados locais <Trash2 size={18} />
+                  </button>
+                  <p className="body-copy">
+                    Uma política completa deverá ser definida antes do
+                    lançamento dos serviços integrados.
+                  </p>
+                </>
+              }
+            />
+            <Route
+              path="/termos"
+              element={
+                <>
+                  <Heading title="Sobre esta versão." />
+                  <p className="body-copy">
+                    Este app web usa React e TypeScript com uma API Spring Boot.
+                    Catálogo, lojas e encontros são carregados do servidor.
+                    Pedidos são registrados sem processamento de pagamento
+                    online.
+                  </p>
+                  <p className="body-copy">
+                    O registro do pedido reserva estoque no servidor e aguarda o
+                    aceite manual do brechó. Cadastro, login e pedidos estão
+                    conectados ao backend. Os formulários de contato, parceria e
+                    eventos não efetuam envio ou inscrição. Regras de venda e
+                    parceria serão estabelecidas antes do lançamento real.
+                  </p>
+                </>
+              }
+            />
+            <Route path="*" element={<Missing />} />
+          </Routes>
+        </main>
+        <nav className="bottom-nav" aria-label="Navegação principal">
+          {[
+            ["/", "Início", Home],
+            ["/catalogo", "Explorar", Search],
+            ["/favoritos", "Salvos", Heart],
+            ["/eventos", "Encontros", CalendarDays],
+            ["/perfil", "Perfil", UserRound],
+          ].map(([url, label, Icon]) => {
+            const C = Icon as typeof Home;
+            return (
+              <NavLink end={url === "/"} key={url as string} to={url as string}>
+                <span>
+                  <C size={21} strokeWidth={1.7} />
+                </span>
+                {label as string}
+              </NavLink>
+            );
+          })}
+        </nav>
+        {notice && (
+          <div className="toast" role="status">
+            <Check size={18} />
+            <span>{notice}</span>
+            <button aria-label="Fechar aviso" onClick={() => setNotice("")}>
+              <X size={17} />
+            </button>
+          </div>
+        )}
+      </ProdutosContext.Provider>
     </div>
   );
 }
-

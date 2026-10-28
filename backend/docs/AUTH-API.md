@@ -1,47 +1,13 @@
-# Autenticação (JWT)
+# Cadastro, login e autorização
 
-Fluxo: **cadastrar → recebe token → manda o token nas rotas protegidas**.
+- `POST /usuarios`: nome, email, senha, tipo CLIENTE ou LOJA. LOJA exige whatsapp com 10 a 13 dígitos. ADMIN não pode ser criado por cadastro público.
+- `POST /auth/login`: email e senha. Resposta com token, tipo Bearer, expiraEmMs e usuario (id, nome, email, role).
+- `GET /auth/me`: usuário autenticado pelo token.
 
-| Método | Rota | Acesso | O que faz |
-|---|---|---|---|
-| POST | `/usuarios` | Público | Cadastra e já devolve o token |
-| POST | `/auth/login` | Público | E-mail + senha → token |
-| GET | `/auth/me` | Logado | Mostra o usuário do token |
+Rotas privadas recebem `Authorization: Bearer <token>`. Token ausente, inválido ou expirado recebe 401; papel sem permissão recebe 403. Senhas são armazenadas com BCrypt; nenhuma senha é devolvida nas respostas.
 
-## Cadastro
-```
-POST /usuarios
-{ "nome": "Ana", "email": "ana@email.com", "senha": "123456" }
-```
-Resposta `201`:
-```
-{ "token": "eyJ...", "tipo": "Bearer", "expiraEmMs": 86400000,
-  "usuario": { "id": 1, "nome": "Ana", "email": "ana@email.com", "role": "CLIENTE" } }
-```
-Erros: `400` (campo inválido, com mensagem por campo), `409` (e-mail já cadastrado).
+Anúncios, loja e encontros são administrados por LOJA. O serviço também confere propriedade, independentemente do papel enviado no token. CLIENTE cria pedidos; cliente e loja consultam apenas seus próprios pedidos. Aceite é exclusivo da loja proprietária. Upload exige autenticação.
 
-## Login
-```
-POST /auth/login
-{ "email": "ana@email.com", "senha": "123456" }
-```
-Mesma resposta do cadastro. Erro: `401` "E-mail ou senha inválidos".
+`JWT_SECRET` é obrigatório fora do modo local; não há chave de produção padrão. `JWT_EXPIRATION_MS` tem padrão de oito horas. O iniciador local gera uma chave aleatória em arquivo ignorado. As chaves fixas em testes são apenas fixtures do banco de testes.
 
-## Usando o token
-Em toda rota protegida: `Authorization: Bearer <token>`
-```
-curl http://localhost:8080/auth/me -H "Authorization: Bearer SEU_TOKEN"
-curl -X POST http://localhost:8080/anuncios -H "Authorization: Bearer SEU_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"titulo":"Camiseta","preco":25.00,"estoque":3,"categoriaId":1}'
-```
-Sem token ou com token inválido/expirado: `401`.
-
-## Configuração (`application.properties`)
-- `jwt.secret` – chave de assinatura (mín. 32 caracteres). Em produção use a variável de ambiente `JWT_SECRET`.
-- `jwt.expiration-ms` – validade do token (padrão 24h).
-
-## Notas
-- Senhas são salvas com BCrypt. Usuários antigos salvos em texto puro não conseguem logar: apague-os da tabela `usuarios` e cadastre de novo.
-- O token guarda o **e-mail** (subject) e a role. O `UsuarioAutenticadoService` já usa o e-mail.
-- Todo cadastro novo vira `CLIENTE`. Para criar um ADMIN, altere a coluna `role` direto no banco.
+Logout no aplicativo remove o token local, sem revogação no servidor. Não há refresh token. Consulte INTEGRACAO-LOCAL.md e IMPLANTACAO.md na raiz para limites e configuração.

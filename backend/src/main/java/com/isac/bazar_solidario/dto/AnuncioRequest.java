@@ -43,6 +43,8 @@ public record AnuncioRequest(
                 @Size(max = 500, message = "A URL da imagem deve ter no máximo 500 caracteres")
                 @Pattern(regexp = "^(https?://.+|/uploads/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(jpg|png|webp))$",
                         message = "A imagem deve usar uma URL HTTP(S) ou um caminho gerado por /uploads")
-                String> imagens
+                String> imagens,
+        @PositiveOrZero Long versao
 ) {
+    public AnuncioRequest(String titulo,String descricao,BigDecimal preco,Integer estoque,Long categoriaId,List<String> imagens) {this(titulo,descricao,preco,estoque,categoriaId,imagens,0L);}
 }

@@ -1,0 +1,314 @@
+[
+  {
+    "title": "O que o aplicativo já entrega",
+    "lead": "O ISAC Brechó conecta brechós parceiros e clientes em um catálogo de peças. A versão atual registra pedidos com estoque reservado e confirmação manual da loja. A interface e a API compartilham as mesmas regras de acesso e de compra.",
+    "sections": [
+      [
+        "Como funciona hoje",
+        "O brechó cria sua conta, publica uma peça com foto e acompanha os pedidos recebidos. O cliente explora o catálogo, salva favoritos, monta uma sacola de um único brechó e solicita o pedido. A loja aceita ou cancela a solicitação."
+      ],
+      [
+        "Resultado para a ISAC",
+        "Cada pedido guarda a divisão prevista do valor dos produtos: 10% para a ISAC e 90% para o brechó. O total é calculado no servidor. O sistema não cobra cartão ou PIX e não transfere valores automaticamente."
+      ],
+      [
+        "Escopo desta consolidação",
+        "Este documento reúne a organização do projeto, a identidade visual, os ícones, os formulários, a autenticação, as APIs, o banco, o painel de anúncios, o checkout e a execução local. As mudanças anteriores da equipe são identificadas como base do trabalho, sem atribuir sua autoria a uma única pessoa."
+      ]
+    ],
+    "table": {
+      "headers": [
+        "Implementado",
+        "Limite que deve ser explicado"
+      ],
+      "rows": [
+        [
+          "Cadastro, login e sessão JWT",
+          "Logout remove o token local; não há refresh token ou revogação individual."
+        ],
+        [
+          "Catálogo, lojas, agenda e fotos pela API",
+          "Contato institucional e parceria continuam como prévias sem envio."
+        ],
+        [
+          "Pedido, reserva e confirmação manual",
+          "Aceite da loja não é confirmação de pagamento."
+        ],
+        [
+          "Banco local persistente e configuração PostgreSQL",
+          "Validação feita com H2. PostgreSQL e implantação pública ainda exigem conferência."
+        ]
+      ]
+    }
+  },
+  {
+    "title": "Interface e identidade visual",
+    "lead": "As alterações visuais aproximaram o aplicativo da marca fornecida pela equipe e deram consistência aos componentes que o usuário encontra em diferentes telas.",
+    "table": {
+      "headers": [
+        "Mudança",
+        "Por que foi feita",
+        "Para que serve"
+      ],
+      "rows": [
+        [
+          "Logo oficial ISAC",
+          "Substituir a identificação anterior pela marca aprovada.",
+          "Reconhecer o projeto no cabeçalho e na apresentação."
+        ],
+        [
+          "Paleta comum",
+          "Alinhar tons de azul esverdeado, laranja, creme e marrom.",
+          "Distinguir ação, seleção, informação e conteúdo."
+        ],
+        [
+          "Ícones originais do Figma",
+          "Eliminar substituições por desenhos de outra biblioteca.",
+          "Manter a mesma linguagem entre desenho e código."
+        ],
+        [
+          "Categorias com área de 24 px",
+          "Corrigir escala, recorte e centralização de roupa, acessório e calçado.",
+          "Dar equilíbrio visual aos atalhos da página inicial."
+        ],
+        [
+          "Favoritos com etiqueta e estrela",
+          "Aplicar o novo desenho do Figma em dois estados.",
+          "Mostrar não salvo e salvo; conservar aria-pressed e navegação ativa."
+        ],
+        [
+          "Formulários reorganizados",
+          "Corrigir espaçamento de rótulos, ajuda, campos e mensagens.",
+          "Facilitar cadastro de cliente, brechó e publicação de peças."
+        ],
+        [
+          "Fotografias do catálogo",
+          "Retirar a bolsa com marca de luxo e ajustar imagens de demonstração.",
+          "Tornar o material de apresentação coerente com um brechó. O catálogo atual usa anúncios cadastrados."
+        ]
+      ]
+    },
+    "sections": [
+      [
+        "O que mudou nos favoritos",
+        "O traçado original da etiqueta foi preservado. A estrela creme indica não salvo e a laranja indica salvo; fundo e contorno reforçam a seleção nos produtos. As duas variantes foram organizadas no Figma e exportadas para arquivos locais. A categoria usa a versão laranja."
+      ]
+    ],
+    "figure": "favoritos-figma.png"
+  },
+  {
+    "title": "Backend e banco de dados",
+    "lead": "A API usa Java 21, Spring Boot e JPA. Os dados deixam de existir apenas na tela: contas, anúncios e pedidos passam a ser consultados e alterados por serviços com regras de negócio.",
+    "table": {
+      "headers": [
+        "Dados",
+        "Organização e finalidade"
+      ],
+      "rows": [
+        [
+          "Usuários",
+          "Nome, e-mail, senha com hash BCrypt e papel CLIENTE ou LOJA. A senha não é devolvida nas respostas."
+        ],
+        [
+          "Lojas",
+          "Um perfil vinculado a uma conta LOJA, com nome, descrição, endereço e WhatsApp. O cadastro cria esse perfil na mesma transação."
+        ],
+        [
+          "Categorias e anúncios",
+          "Categoria, título, descrição, preço, estoque disponível, status e vendedor autenticado. A versão do anúncio detecta edição desatualizada."
+        ],
+        [
+          "Imagens",
+          "Endereço do arquivo e ordem de exibição vinculados ao anúncio. Os arquivos ficam no diretório de uploads."
+        ],
+        [
+          "Encontros",
+          "Título, data, horário, local, descrição, status, loja organizadora e relação com lojas participantes."
+        ],
+        [
+          "Pedidos e itens",
+          "Cliente, vendedor, estado, chave de repetição, data, total e divisão ISAC/brechó. Cada item guarda quantidade, título e preço unitário do momento da solicitação."
+        ]
+      ]
+    },
+    "sections": [
+      [
+        "Por que guardar o preço no pedido",
+        "Uma edição posterior do anúncio não altera o valor histórico de um pedido já registrado. O navegador envia apenas os identificadores e as quantidades; não decide preço, comissão ou dono da peça."
+      ],
+      [
+        "Como o estoque é protegido",
+        "Reserva e pedido são gravados na mesma transação. Bloqueios de linha ordenados impedem que duas compras levem a última unidade. Cancelamento devolve a quantidade uma única vez. Uma edição antiga do anúncio é recusada em vez de sobrescrever a reserva."
+      ],
+      [
+        "Onde os dados ficam",
+        "O perfil local usa H2 em arquivo, preservado após reiniciar. A configuração de implantação usa PostgreSQL por variáveis de ambiente. Banco, fotos de teste e chaves locais não são enviados no Git nem no ZIP."
+      ]
+    ]
+  },
+  {
+    "title": "APIs sessão e permissões",
+    "lead": "O frontend faz chamadas HTTP para /api. No desenvolvimento, o proxy do Vite encaminha a chamada à API Java; no servidor publicado, essa função deve ser feita pelo proxy da infraestrutura.",
+    "table": {
+      "headers": [
+        "API",
+        "Quem acessa",
+        "Uso no aplicativo"
+      ],
+      "rows": [
+        [
+          "POST /usuarios e /auth/login",
+          "Público",
+          "Cadastrar e obter sessão. LOJA exige WhatsApp; cadastro público como ADMIN é recusado."
+        ],
+        [
+          "GET /auth/me",
+          "Conta autenticada",
+          "Consultar o usuário correspondente ao token."
+        ],
+        [
+          "GET /anuncios, /lojas e /encontros",
+          "Público",
+          "Carregar catálogo, parceiros e agenda sem depender de dados fictícios."
+        ],
+        [
+          "GET /anuncios/meus e /lojas/me",
+          "LOJA",
+          "Consultar anúncios próprios e perfil da loja."
+        ],
+        [
+          "POST/PUT/PATCH /anuncios",
+          "LOJA proprietária",
+          "Publicar, editar e ocultar/reativar peças. O dono é definido pelo token."
+        ],
+        [
+          "POST /uploads",
+          "Conta autenticada",
+          "Enviar JPEG, PNG ou WebP de até 5 MB. A interface usa o upload no painel da loja."
+        ],
+        [
+          "POST /pedidos",
+          "CLIENTE",
+          "Verificar preço e estoque e registrar o pedido."
+        ],
+        [
+          "GET/PATCH /pedidos",
+          "Conta envolvida",
+          "Cliente vê seus pedidos; loja vê os recebidos. Alterações respeitam papel, propriedade e estado."
+        ]
+      ]
+    },
+    "sections": [
+      [
+        "Correção da conexão",
+        "A chamada fetch passou a preservar o contexto exigido pelo navegador. O proxy evita diferenças de origem no ambiente local. Rotas privadas específicas são avaliadas antes dos caminhos públicos mais abrangentes."
+      ],
+      [
+        "Sessão e falhas",
+        "Chamadas privadas enviam Authorization com Bearer JWT. A interface verifica a expiração e limpa a sessão após 401. O servidor recusa token inválido e responde 403 quando falta permissão. Alterar uma tela ou um identificador no navegador não concede propriedade."
+      ]
+    ]
+  },
+  {
+    "title": "Pedido manual e divisão do valor",
+    "lead": "O MVP registra uma solicitação comercial real, sem simular pagamento aprovado. Cada pedido reúne peças de um único brechó para facilitar a operação, a reserva e a conciliação.",
+    "sections": [
+      [
+        "1 Solicitação do cliente",
+        "A sacola envia anúncios e quantidades com uma chave por intenção de compra. O backend consulta disponibilidade e preços e calcula o total. Repetir a mesma confirmação devolve o pedido já criado, sem reservar novamente."
+      ],
+      [
+        "2 Reserva e aceite",
+        "O pedido começa em AGUARDANDO_CONFIRMACAO_MANUAL e o estoque disponível diminui. Apenas a loja proprietária pode mudar para CONFIRMADO. Esse estado significa aceite, não pagamento recebido."
+      ],
+      [
+        "3 Cancelamento",
+        "O cliente pode cancelar enquanto aguarda aceite. O brechó também pode cancelar após confirmar. O estado passa para CANCELADO e o estoque retorna uma única vez. A divisão original permanece como histórico, sem repasse devido pelo pedido cancelado."
+      ]
+    ],
+    "table": {
+      "headers": [
+        "Exemplo de pedido",
+        "Valor"
+      ],
+      "rows": [
+        [
+          "Produtos",
+          "R$ 89,99"
+        ],
+        [
+          "ISAC - 10%",
+          "R$ 9,00"
+        ],
+        [
+          "Brechó - total menos ISAC",
+          "R$ 80,99"
+        ],
+        [
+          "Conferência",
+          "R$ 9,00 + R$ 80,99 = R$ 89,99"
+        ]
+      ]
+    },
+    "after": [
+      [
+        "Por que esse cálculo fica no servidor",
+        "O valor da ISAC usa 10% com arredondamento HALF_UP para centavos. A parte do brechó é o restante, evitando diferenças na soma. O preço enviado pelo navegador não substitui o banco."
+      ],
+      [
+        "Operação que continua manual",
+        "Pagamento, retirada/entrega e repasse precisam ser combinados e conciliados pela equipe. Não há frete integrado, transferência automática ou expiração automática da reserva. Pedidos sem continuidade precisam ser cancelados pela operação."
+      ]
+    ]
+  },
+  {
+    "title": "Histórico validação e apresentação",
+    "lead": "A consolidação reúne o trabalho existente no repositório e as correções recentes. Os registros abaixo são referências verificáveis do Git, não datas retroativas de execução.",
+    "table": {
+      "headers": [
+        "Referência",
+        "O que passou a existir"
+      ],
+      "rows": [
+        [
+          "7d349cd - PR 2",
+          "Integração do frontend à estrutura compartilhada, ao lado de backend e tarefas da equipe."
+        ],
+        [
+          "9cfa479 - PR 6",
+          "Base de home, uploads e testes de integração desenvolvida pela equipe."
+        ],
+        [
+          "4b84704",
+          "Cadastro por tipo de conta, login JWT e permissões; checkout ainda demonstrativo nessa etapa."
+        ],
+        [
+          "caa3fe6 e ded4ef1",
+          "Correção da comunicação local, ícones ISAC, perfil da loja, formulários e painel de peças."
+        ],
+        [
+          "3975fa1 / f663a63",
+          "Integração das correções anteriores por PR 8 e PR 7."
+        ],
+        [
+          "Consolidação atual",
+          "Catálogo real nas telas, pedidos e itens, reserva, idempotência, divisão 10/90, favoritos atualizados, segredos externos e guias de execução."
+        ]
+      ]
+    },
+    "sections": [
+      [
+        "Evidências da versão",
+        "63 testes no backend e 48 no frontend aprovados; build TypeScript/Vite concluído. A cobertura inclui autorização, persistência JPA, upload, preço do banco, arredondamento, rollback, última unidade concorrente, repetição de pedido e edição antiga de estoque. No navegador: cliente solicitou R$ 85,00, loja aceitou e depois cancelou; o estoque retornou. Pedido e sessão permaneceram após reiniciar a API."
+      ],
+      [
+        "Roteiro de dois minutos para a ONG",
+        "Apresente a finalidade e a marca; mostre uma peça publicada pela loja; salve nos favoritos e registre um pedido como cliente; mostre o aceite no painel do brechó; explique 10% ISAC e 90% brechó. Termine deixando claro o que é manual e que a implantação em PostgreSQL ainda precisa ser validada."
+      ],
+      [
+        "Equipe e referências",
+        "Victor William Monteiro da Rocha; Geovana Leticia; Silas Freitas; Mateus Ferreira; Willyanne Darline; Ruan Araujo; Suellen da Silva; Cynthia Melo. Fontes: código, histórico Git, testes e Figma do projeto. Repositório e links estão na versão digital deste documento."
+      ]
+    ]
+  }
+]

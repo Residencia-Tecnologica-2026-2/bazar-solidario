@@ -1,11 +1,14 @@
-# Front-end ISAC Brechó
+# Frontend ISAC Brechó
 
-React + TypeScript + Vite. Execute npm ci para instalar dependências. Use INICIAR-FRONTEND.cmd na raiz para iniciar na porta 4186.
+React + TypeScript + Vite, integrado à API Spring Boot. Catálogo sem fallback fictício, lojas, encontros, publicação com foto, JWT e pedidos com confirmação manual.
 
-Cadastro e login usam /api, encaminhado pelo Vite ao backend em localhost:8080. A autenticação recebe JWT e usuário, mantém a sessão e permite logout. O cadastro aceita CLIENTE ou LOJA; loja exige WhatsApp com 10 a 13 dígitos.
+```sh
+npm ci
+npm run dev -- --host 127.0.0.1 --port 4186
+npm test
+npm run build
+```
 
-UsuarioService chama globalThis.fetch por uma função intermediária com contexto correto no navegador. Ícones em public/icons/isac/ são os arquivos exportados do Figma.
+Use `VITE_API_BASE_URL=/api`; o proxy Vite usa `API_PROXY_TARGET=http://localhost:8080`. Não coloque segredos em variáveis VITE_. Veja README, INTEGRACAO-LOCAL e IMPLANTACAO na raiz.
 
-Verificação: npm test (38 testes) e npm run build. A evidência HTTP real está em ../validacao-integracao.json.
-
-Consulte ../INTEGRACAO-LOCAL.md para executar API e banco persistente local. Catálogo, sacola e pagamento continuam demonstrativos.
+Cliente registra pedido e acompanha o aceite. Loja publica anúncios e administra seus pedidos. Divisão de 10% para ISAC e 90% para o brechó calculada no servidor; pagamento e repasse são manuais.

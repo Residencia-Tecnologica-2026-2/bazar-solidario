@@ -1,0 +1,18 @@
+{
+  "data": "2026-10-28T16:03:45.4635062-03:00",
+  "banco": "H2 persistente em arquivo",
+  "postgresValidado": false,
+  "backendTestes": 63,
+  "frontendTestes": 48,
+  "build": "aprovado",
+  "pedidoPersistidoAposReinicio": true,
+  "pedido": 1,
+  "estadoFinal": "CANCELADO",
+  "total": 85.0,
+  "isac": 8.5,
+  "brecho": 76.5,
+  "estoqueAposCancelamento": 1,
+  "sessaoPreservadaNoNavegador": true,
+  "pagamentoOnline": false,
+  "repasseAutomatico": false
+}

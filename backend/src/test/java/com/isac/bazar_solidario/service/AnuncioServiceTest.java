@@ -88,7 +88,7 @@ class AnuncioServiceTest {
     @Test
     void donoPodeAtualizar() {
         Anuncio anuncio = anuncioDe(dono);
-        when(anuncioRepository.findById(5L)).thenReturn(Optional.of(anuncio));
+        when(anuncioRepository.bloquear(5L)).thenReturn(Optional.of(anuncio));
         when(categoriaRepository.findById(10L)).thenReturn(Optional.of(categoria));
 
         AnuncioRequest req = new AnuncioRequest("Novo título  ", "desc", new BigDecimal("99.90"), 7, 10L, null);
@@ -105,7 +105,7 @@ class AnuncioServiceTest {
         com.isac.bazar_solidario.model.Imagem img = new com.isac.bazar_solidario.model.Imagem();
         img.setUrl("https://x.com/antiga.jpg");
         anuncio.adicionarImagem(img);
-        when(anuncioRepository.findById(5L)).thenReturn(Optional.of(anuncio));
+        when(anuncioRepository.bloquear(5L)).thenReturn(Optional.of(anuncio));
         when(categoriaRepository.findById(10L)).thenReturn(Optional.of(categoria));
 
         AnuncioResponse resp = service.atualizar(5L, request(null), dono);
@@ -115,7 +115,7 @@ class AnuncioServiceTest {
 
     @Test
     void naoDonoNaoPodeAtualizar() {
-        when(anuncioRepository.findById(5L)).thenReturn(Optional.of(anuncioDe(dono)));
+        when(anuncioRepository.bloquear(5L)).thenReturn(Optional.of(anuncioDe(dono)));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.atualizar(5L, request(null), outro));
@@ -126,7 +126,7 @@ class AnuncioServiceTest {
     @Test
     void donoPodeDesativar() {
         Anuncio anuncio = anuncioDe(dono);
-        when(anuncioRepository.findById(5L)).thenReturn(Optional.of(anuncio));
+        when(anuncioRepository.bloquear(5L)).thenReturn(Optional.of(anuncio));
 
         AnuncioResponse resp = service.desativar(5L, dono);
 
@@ -136,7 +136,7 @@ class AnuncioServiceTest {
     @Test
     void naoDonoNaoPodeDesativar() {
         Anuncio anuncio = anuncioDe(dono);
-        when(anuncioRepository.findById(5L)).thenReturn(Optional.of(anuncio));
+        when(anuncioRepository.bloquear(5L)).thenReturn(Optional.of(anuncio));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.desativar(5L, outro));
@@ -147,7 +147,7 @@ class AnuncioServiceTest {
 
     @Test
     void desativarAnuncioInexistenteRetorna404() {
-        when(anuncioRepository.findById(99L)).thenReturn(Optional.empty());
+        when(anuncioRepository.bloquear(99L)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.desativar(99L, dono));
@@ -159,7 +159,7 @@ class AnuncioServiceTest {
     void anuncioVendidoNaoPodeSerDesativado() {
         Anuncio anuncio = anuncioDe(dono);
         anuncio.setStatus(StatusAnuncio.VENDIDO);
-        when(anuncioRepository.findById(5L)).thenReturn(Optional.of(anuncio));
+        when(anuncioRepository.bloquear(5L)).thenReturn(Optional.of(anuncio));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.desativar(5L, dono));

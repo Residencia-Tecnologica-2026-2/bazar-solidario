@@ -1,4 +1,3 @@
 @echo off
-cd /d "%~dp0backend"
-call mvnw.cmd -Plocal -Dspring-boot.run.profiles=local spring-boot:run
+pwsh -NoProfile -ExecutionPolicy Bypass -File "%~dp0INICIAR-BACKEND.ps1"
 pause
