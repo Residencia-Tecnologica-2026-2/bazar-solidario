@@ -19,6 +19,10 @@ A chave foi validada com uma consulta somente de leitura. O teste de cobrança e
 
 ## Preparação local
 
+Antes da primeira cobrança com divisão, habilite **Integrações → Segurança → Habilitar Split** no Sandbox. A confirmação do ambiente de testes informa o código de simulação na própria tela. Não confundir essa opção com validação de saque por webhook ou autorização de encerramento de subcontas.
+
+Cada recebedor precisa de uma carteira de outra conta. A API de criação de subcontas exige uma conta-pai pessoa jurídica; uma conta Sandbox pessoa física pode exigir cadastrar uma segunda conta de testes separadamente. Senhas e aceites do titular devem ser concluídos pelo responsável. Não utilizar o Wallet ID da própria conta emissora como destino do split.
+
 1. Execute `CONFIGURAR-ASAAS.ps1` e informe a chave da conta de testes que representará o brechó. Nunca edite o script para colar a chave.
 2. Crie uma segunda conta no **Sandbox** para representar o ISAC. Copie seu Wallet ID em Integrações; não precisa fornecer sua chave ao aplicativo.
 3. Escolha o usuário LOJA do aplicativo que representa a conta emissora. Em `GET /lojas`, use o campo `vendedorId`, não o `id` da loja.
@@ -43,6 +47,7 @@ O Asaas não acessa `127.0.0.1`. Para callbacks automáticos, o backend precisa 
 - Receptor: `POST /webhooks/asaas`.
 - Configure no Asaas os eventos de cobrança necessários, incluindo recebimento, confirmação, vencimento e estorno.
 - O token de autenticação deve ser o mesmo `app.asaas.webhook-token` do arquivo privado; ele é diferente da chave da API e não deve ser publicado.
+- Na implantação unificada do Vercel, a URL pública é `https://isac-brecho.vercel.app/api/webhooks/asaas`. O webhook provisionado deve permanecer inativo enquanto faltarem o vendedor vinculado, a carteira recebedora e a validação da cobrança de teste.
 - O receptor verifica `asaas-access-token` e consulta a cobrança no Asaas antes de atualizar o banco. Eventos repetidos não geram outro pagamento nem alteram o estoque.
 - Sem URL pública, use **Consultar confirmação no Asaas** no aplicativo. Isso é uma alternativa local de teste; não equivale a um webhook já instalado.
 
