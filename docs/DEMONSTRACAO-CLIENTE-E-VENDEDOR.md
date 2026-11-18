@@ -17,8 +17,18 @@ Anúncios criados pela interface do vendedor, sem alterar o código para inserir
 | Regata branca — DEMONSTRAÇÃO (id 3) | DEMO-REGATA-001 | R$ 40,00 | 5 |
 | Bolsa caramelo — DEMONSTRAÇÃO (id 4) | DEMO-BOLSA-001 | R$ 60,00 | 5 |
 | Tênis casual — DEMONSTRAÇÃO (id 5) | DEMO-TENIS-001 | R$ 50,00 | 5 |
+| Vestido verde com bordados — DEMONSTRAÇÃO (id 6) | DEMO-VESTIDO-VERDE-001 | R$ 80,00 | 1 |
+| Vestido vinho com bordados — DEMONSTRAÇÃO (id 7) | DEMO-VESTIDO-VINHO-001 | R$ 70,00 | 1 |
+| Óculos escuros retangulares — DEMONSTRAÇÃO | DEMO-OCULOS-SOLAR-001 | R$ 35,00 | 1 |
+| Armação oval marrom — DEMONSTRAÇÃO | DEMO-ARMACAO-MARROM-001 | R$ 25,00 | 1 |
+| Armação oval tartaruga — DEMONSTRAÇÃO | DEMO-ARMACAO-TARTARUGA-001 | R$ 30,00 | 1 |
+| Calça jeans preta de perna ampla — DEMONSTRAÇÃO | DEMO-CALCA-JEANS-001 | R$ 65,00 | 1 |
+| Camisa xadrez de manga curta — DEMONSTRAÇÃO | DEMO-CAMISA-XADREZ-001 | R$ 45,00 | 1 |
+| Camisa marrom estampada de manga longa — DEMONSTRAÇÃO | DEMO-CAMISA-ESTAMPADA-001 | R$ 55,00 | 1 |
 
 São itens **fictícios**, com fotografia ilustrativa e aviso explícito na descrição. Não há venda, produto ou entrega real. O estoque muda conforme as reservas; o pedido nº 3 reservou uma regata, restando quatro disponíveis após esse teste. O upload das três fotografias e a exibição pública foram verificados.
+
+Os oito últimos anúncios usam as fotografias enviadas pelo responsável, publicadas por sua instrução. São **cadastros de demonstração**, sem afirmar que as peças físicas são fictícias. Tamanhos, medidas, materiais e conservação não foram inventados; permanecem a confirmar. Valores dos vestidos aprovados pelo responsável; demais valores são provisórios de demonstração. Não se afirma graduação, autenticidade de marca ou proteção UV dos óculos. Fotografias pessoais enviadas foram armazenadas como uploads no banco, sem incluí-las no repositório Git. O catálogo público foi conferido com **11 anúncios ativos**.
 
 ## Cliente: experimentar a compra
 

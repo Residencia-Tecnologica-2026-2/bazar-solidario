@@ -29,7 +29,7 @@ Os exercícios não criam pedidos, reservas ou cobranças. Aparece no primeiro a
 ## Evidências de validação
 
 - Front-end: 54 testes aprovados e build TypeScript/Vite aprovado.
-- Back-end: 85 testes aprovados, incluindo preflight Android autorizado e origem arbitrária recusada; regressões de autenticação, proprietário, anúncios, duplicidade, estoque, pedidos e integrações.
+- Back-end: 86 testes aprovados, incluindo preflight Android autorizado, origem arbitrária recusada e carregamento público de fotos/marca sem liberar a área privada; regressões de autenticação, proprietário, anúncios, duplicidade, estoque, pedidos e integrações.
 - Navegador publicado: páginas inicial, catálogo, busca sem resultados, filtros, produto, favoritos, sacola, checkout, perfil, pedidos, cadastro, login/logout, painel de loja, páginas da comunidade/institucionais, termos e privacidade inspecionados. Áreas de loja exigem sessão/perfil apropriado.
 - Fluxo real com dados **fictícios identificados**: login de loja e cliente; upload PNG; publicação com confirmação de foto semelhante; edição de preço R$ 25 → R$ 24; favorito; sacola; pedido #2 reservado; cancelamento sem cobrança devolveu estoque de 0 para 1. Anúncio de teste ocultado ao terminar.
 - Pagamento #1 reconsultado: PAGO na aplicação, RECEIVED no Asaas Sandbox e split DONE de R$ 2 em compra simulada de R$ 20. Tarifa simulada R$ 0,99, líquido do brechó R$ 17,01. A homologação anterior também comprovou webhook automático e prevenção de cobranças duplicadas (ver ASAAS-SANDBOX.md).
