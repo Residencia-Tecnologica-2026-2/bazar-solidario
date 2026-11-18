@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest @AutoConfigureMockMvc @ActiveProfiles("test")
 @TestPropertySource(properties={"spring.datasource.url=jdbc:h2:mem:integracoes_test;DB_CLOSE_DELAY=-1",
+    "spring.main.lazy-initialization=true",
     "ML_CLIENT_ID=123456", "ML_CLIENT_SECRET=segredo-ficticio-apenas-teste",
     "ML_REDIRECT_URI=https://isac.example/api/integracoes/mercadolivre/callback",
     "ML_ENCRYPTION_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "PUBLIC_APP_URL=https://isac.example", "app.uploads.storage=database"})

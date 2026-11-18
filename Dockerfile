@@ -17,6 +17,10 @@ RUN mvn -B -q package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=backend /app/target/*-SNAPSHOT.jar app.jar
-ENV PORT=80 APP_UPLOADS_STORAGE=database JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=70"
+ENV PORT=80 APP_UPLOADS_STORAGE=database \
+    SPRING_MAIN_LAZY_INITIALIZATION=true \
+    SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=0 \
+    SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=3 \
+    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=70 -XX:TieredStopAtLevel=1"
 EXPOSE 80
 ENTRYPOINT ["java", "-jar", "app.jar"]
