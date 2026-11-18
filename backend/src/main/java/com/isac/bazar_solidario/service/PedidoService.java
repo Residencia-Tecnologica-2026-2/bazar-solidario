@@ -17,6 +17,7 @@ public class PedidoService {
  private final PedidoRepository pedidos;
  private final AnuncioRepository anuncios;
  private final EntityManager em;
+ private final PagamentoRepository pagamentos;
  private void exigir(boolean ok,HttpStatus status,String texto) {if(!ok) throw new ResponseStatusException(status,texto);}
  @Transactional public PedidoResponse criar(Usuario cliente,String chave,PedidoRequest req) {
   exigir(cliente.getRole()==Role.CLIENTE,HttpStatus.FORBIDDEN,"Somente clientes podem fazer pedidos.");
@@ -54,6 +55,8 @@ public class PedidoService {
   boolean dono=p.getVendedor().getId().equals(u.getId()) && u.getRole()==Role.LOJA;
   boolean comprador=p.getCliente().getId().equals(u.getId()) && u.getRole()==Role.CLIENTE;
   exigir(dono||comprador,HttpStatus.FORBIDDEN,"Este pedido não pertence à sua conta.");
+  if(acao.equals("cancelar")) exigir(pagamentos.findByPedidoId(id).isEmpty(),HttpStatus.CONFLICT,
+    "Há uma cobrança online vinculada. O cancelamento exige conciliação e eventual estorno no provedor; o estoque não será liberado automaticamente.");
   if(acao.equals("confirmar")) {
    exigir(dono,HttpStatus.FORBIDDEN,"A confirmação é feita pelo brechó.");
    exigir(p.getEstado().equals("AGUARDANDO_CONFIRMACAO_MANUAL"),HttpStatus.CONFLICT,"Pedido já atualizado.");

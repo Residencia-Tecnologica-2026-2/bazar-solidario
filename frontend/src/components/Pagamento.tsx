@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { obterSessao } from "../services/usuarios";
 import { criarPedido, type Pedido } from "../services/pedidos";
 import { CheckCircle2, HandHeart } from "./IsacIcons";
+import { PagamentoOnline } from "./PagamentoOnline";
 const money = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export function Pagamento({
@@ -36,16 +37,16 @@ export function Pagamento({
         <CheckCircle2 size={40} />
         <h2>Pedido #{pedido.id} registrado</h2>
         <p>
-          Aguardando confirmação manual do brechó. Nenhum pagamento foi
-          processado.
+          Pedido reservado. O aceite da loja e a confirmação do pagamento são etapas separadas.
         </p>
         <p>
           Total confirmado pelo servidor: <strong>{money(pedido.total)}</strong>
         </p>
         <p>
-          ISAC (10%): {money(pedido.valorIsac)} · Brechó (90%):{" "}
+          ISAC (10%): {money(pedido.valorIsac)} · Brechó antes das tarifas:{" "}
           {money(pedido.valorBrecho)}
         </p>
+        <PagamentoOnline pedidoId={pedido.id} inicial={pedido.pagamento} cliente />
         <Link className="btn full" to="/pedidos" onClick={onSucesso}>
           Acompanhar pedido
         </Link>
@@ -102,19 +103,17 @@ export function Pagamento({
       <div className="info-box">
         <HandHeart size={24} />
         <p>
-          10% do valor dos produtos é destinado à ISAC e 90% ao brechó. O
-          sistema registra a divisão; o repasse será conciliado manualmente pela
-          equipe.
+          10% do valor dos produtos é destinado à ISAC. O restante fica para o brechó,
+          descontadas as tarifas quando houver pagamento online. Vendas presenciais não passam por este checkout.
         </p>
       </div>
       <p>
-        Não há cobrança online, frete calculado ou pagamento automático neste
-        MVP. Retirada, entrega e pagamento serão combinados com a loja após o
-        aceite.
+        Após registrar o pedido, você poderá iniciar o pagamento de teste, se o brechó estiver vinculado ao Sandbox.
+        Retirada e entrega são combinadas com a loja; não há frete automático.
       </p>
       {erro && <p role="alert">{erro}</p>}
       <button className="btn full" disabled={enviando}>
-        {enviando ? "Registrando…" : "Registrar pedido sem pagamento online"}
+        {enviando ? "Registrando…" : "Registrar pedido e continuar"}
       </button>
     </form>
   );

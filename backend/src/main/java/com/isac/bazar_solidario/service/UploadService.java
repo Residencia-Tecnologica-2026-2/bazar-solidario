@@ -29,6 +29,8 @@ public class UploadService {
             "image/webp", ".webp");
 
     private final Path pastaUploads;
+    @Value("${app.uploads.storage:file}") private String storage="file";
+    @org.springframework.beans.factory.annotation.Autowired private com.isac.bazar_solidario.repository.ArquivoFotoRepository fotos;
 
     public UploadService(@Value("${app.uploads.directory:uploads}") String diretorioUploads) {
         this.pastaUploads = Paths.get(diretorioUploads).toAbsolutePath().normalize();
@@ -54,6 +56,13 @@ public class UploadService {
 
         byte[] conteudo = arquivo.getBytes();
         validarImagem(conteudo, tipo);
+
+        if("database".equals(storage)) {
+            String nome=UUID.randomUUID()+extensao;
+            var foto=new com.isac.bazar_solidario.model.ArquivoFoto();
+            foto.setNome(nome);foto.setTipo(tipo);foto.setConteudo(conteudo);fotos.save(foto);
+            return "/uploads/"+nome;
+        }
 
         Files.createDirectories(pastaUploads);
         String nomeArquivo = UUID.randomUUID() + extensao;

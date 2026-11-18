@@ -17,6 +17,11 @@ import java.util.Map;
  */
 @RestControllerAdvice(assignableTypes = AnuncioController.class)
 public class AnuncioExceptionHandler {
+    @ExceptionHandler(AnuncioSemelhanteException.class)
+    public ResponseEntity<?> semelhantes(AnuncioSemelhanteException ex){return ResponseEntity.status(409).body(Map.of(
+        "codigo","ANUNCIO_SEMELHANTE","erro",ex.getMessage(),"semelhantes",ex.getSugestoes()));}
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<?> regra(org.springframework.web.server.ResponseStatusException ex){return ResponseEntity.status(ex.getStatusCode()).body(Map.of("erro",ex.getReason()==null?"Operação não permitida.":ex.getReason()));}
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> validacao(MethodArgumentNotValidException ex) {

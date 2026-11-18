@@ -74,6 +74,7 @@ class FluxoPrincipalIntegrationTest {
         long categoriaId = categoriaRepository.findAll().stream()
                 .findFirst().orElseThrow().getId();
         mockMvc.perform(post("/anuncios")
+                        .header("Idempotency-Key",java.util.UUID.randomUUID().toString())
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

@@ -13,13 +13,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "anuncios")
+@Table(name = "anuncios", uniqueConstraints={
+    @UniqueConstraint(columnNames={"vendedor_id","codigo_peca"}),
+    @UniqueConstraint(columnNames={"vendedor_id","chave_publicacao"})})
 @Getter @Setter @NoArgsConstructor
 public class Anuncio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name="codigo_peca",length=40) private String codigoPeca;
+    @Column(name="chave_publicacao",length=64) private String chavePublicacao;
+    @Column(length=64) private String assinaturaPublicacao;
 
     @Version
     @Column(nullable=false, columnDefinition="bigint default 0")
@@ -58,7 +64,10 @@ public class Anuncio {
     private List<Imagem> imagens = new ArrayList<>();
 
     @PrePersist
-    void aoCriar() { this.dataCriacao = LocalDateTime.now(); }
+    void aoCriar() {
+        this.dataCriacao = LocalDateTime.now();
+        if(this.codigoPeca==null)this.codigoPeca="PEC-"+java.util.UUID.randomUUID().toString().replace("-","").substring(0,16).toUpperCase(java.util.Locale.ROOT);
+    }
 
     public void ativar() { this.status = StatusAnuncio.ATIVO; }
     public void desativar() { this.status = StatusAnuncio.INATIVO; }

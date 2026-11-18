@@ -66,8 +66,9 @@ public class AnuncioController {
 
     @PostMapping
     public ResponseEntity<AnuncioResponse> criar(@Valid @RequestBody AnuncioRequest req,
+                                                 @RequestHeader("Idempotency-Key") String chave,
                                                  Authentication authentication) {
-        AnuncioResponse criado = anuncioService.criar(req, usuarioAutenticado.obter(authentication));
+        AnuncioResponse criado = anuncioService.criar(req, usuarioAutenticado.obter(authentication),chave);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(criado.id()).toUri();
         return ResponseEntity.created(location).body(criado);

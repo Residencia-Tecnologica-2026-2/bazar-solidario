@@ -12,6 +12,9 @@ Aplicativo React + TypeScript + Vite e API Java 21 + Spring Boot. Cadastro de cl
 - [Histórico em texto](docs/HISTORICO-ATUALIZACOES.md): versão consultável no GitHub.
 - [Guia VS Code em PDF](docs/apresentacao/ISAC-Brecho-Guia-VS-Code.pdf) e [guia passo a passo](GUIA-VSCODE.md).
 - [Implantação](IMPLANTACAO.md): ambiente, PostgreSQL, volumes, proxy e limites de validação.
+- [Implantação unificada no Vercel](docs/IMPLANTACAO-VERCEL.md): contêiner Java + React, banco persistente e verificação pública.
+- [Asaas Sandbox](docs/ASAAS-SANDBOX.md): piloto de pagamento e split, sem habilitar cobranças reais.
+- [Mercado Livre em teste](docs/MERCADO-LIVRE-TESTES.md): autorização, anúncios, consulta de frete e limites do piloto.
 
 ## Abrir no computador
 
@@ -32,7 +35,7 @@ O modo local usa H2 em arquivo (`backend/dados/`) e gera uma chave JWT aleatóri
 
 Um pedido contém peças de um único brechó. O servidor calcula preços, reserva estoque e registra **10% para a ISAC / 90% para o brechó**, com arredondamento em centavos e soma exata. O pedido começa em `AGUARDANDO_CONFIRMACAO_MANUAL`. A loja pode aceitar ou cancelar; o cliente pode cancelar enquanto aguarda aceite. Cancelamento devolve estoque uma única vez.
 
-**Nenhum cartão, PIX, cobrança ou transferência é processado.** Aceite não é quitação. Pagamento, entrega/retirada e conciliação do repasse são manuais. Os valores registrados são a divisão prevista do pedido; pedidos cancelados não representam receita.
+O fluxo padrão continua manual: aceite não é quitação. Há também um piloto opcional de PIX no **Asaas Sandbox**, restrito à loja configurada no servidor. Nenhum pagamento real é habilitado por esta entrega. As tarifas do provedor e o resultado do split precisam ser homologados entre contas de teste antes de qualquer uso comercial. Entrega/retirada continuam combinadas com o brechó; a consulta de frete do Mercado Livre não emite etiqueta para esses pedidos.
 
 ## Organização
 

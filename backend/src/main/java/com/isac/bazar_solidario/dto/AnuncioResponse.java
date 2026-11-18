@@ -19,9 +19,11 @@ public record AnuncioResponse(
         CategoriaResponse categoria,
         VendedorResponse vendedor,
         List<String> imagens,
-        Long versao
+        Long versao,
+        String codigoPeca
 ) {
     public AnuncioResponse(Long id,String titulo,String descricao,BigDecimal preco,Integer estoque,StatusAnuncio status,LocalDateTime dataCriacao,CategoriaResponse categoria,VendedorResponse vendedor,List<String> imagens) {this(id,titulo,descricao,preco,estoque,status,dataCriacao,categoria,vendedor,imagens,0L);}
+    public AnuncioResponse(Long id,String titulo,String descricao,BigDecimal preco,Integer estoque,StatusAnuncio status,LocalDateTime dataCriacao,CategoriaResponse categoria,VendedorResponse vendedor,List<String> imagens,Long versao) {this(id,titulo,descricao,preco,estoque,status,dataCriacao,categoria,vendedor,imagens,versao,null);}
 
     public static AnuncioResponse de(Anuncio a) {
         return new AnuncioResponse(
@@ -34,6 +36,7 @@ public record AnuncioResponse(
                 a.getDataCriacao(),
                 CategoriaResponse.de(a.getCategoria()),
                 VendedorResponse.de(a.getVendedor()),
-                a.getImagens().stream().map(Imagem::getUrl).toList(), a.getVersao());
+                a.getImagens().stream().map(Imagem::getUrl).toList(), a.getVersao(),
+                a.getCodigoPeca()!=null?a.getCodigoPeca():"LEG-"+a.getId());
     }
 }

@@ -56,6 +56,7 @@ import { Cadastro } from "./components/Cadastro";
 import { Login } from "./components/Login";
 import { ProdutosLoja } from "./components/ProdutosLoja";
 import { Pedidos } from "./components/Pedidos";
+import { Integracoes } from "./components/Integracoes";
 import { api, fotoAnuncio, type Anuncio } from "./services/anuncios";
 import { Comunidade } from "./components/Comunidade";
 import { Pagamento } from "./components/Pagamento";
@@ -546,6 +547,10 @@ export default function App() {
       (x) => x.id === Number(location.pathname.split("/").pop()),
     );
     if (!p) return <Missing />;
+    const caracteristicas = [
+      { nome: "Tamanho", valor: p.size },
+      { nome: "Cor", valor: p.color },
+    ].filter(({ valor }) => valor && valor !== "Ver descrição");
     return (
       <>
         <div className="detail-photo">
@@ -562,34 +567,41 @@ export default function App() {
             <Heart size={21} />
           </button>
         </div>
-        <div className="detail-title">
+        <div className="detail-title product-heading">
           <div>
             <p className="eyebrow">{p.shop}</p>
             <h1>{p.name}</h1>
           </div>
-          <strong>{money(p.price)}</strong>
         </div>
-        <div className="specs">
-          <div>
-            <span>Tamanho</span>
-            <strong>{p.size}</strong>
+        <div className="product-purchase-summary">
+          <div className="product-price">
+            <span>Valor da peça</span>
+            <strong>{money(p.price)}</strong>
           </div>
-          <div>
-            <span>Cor</span>
-            <strong>{p.color}</strong>
-          </div>
-          <div>
-            <span>Condição</span>
-            <strong>Ver descrição</strong>
-          </div>
+          <span className="product-category">{p.category}</span>
         </div>
-        <h2 className="small-title">Uma peça, novas possibilidades</h2>
-        <p className="body-copy">{p.description}</p>
+        <section className="product-description" aria-labelledby="descricao-peca">
+          <div className="product-description-heading">
+            <span className="product-section-marker" aria-hidden="true" />
+            <h2 id="descricao-peca">Sobre esta peça</h2>
+          </div>
+          <p className="product-description-copy">
+            {p.description.trim() || "O brechó ainda não adicionou uma descrição para esta peça."}
+          </p>
+          {caracteristicas.length > 0 && <dl className="product-attributes">
+            {caracteristicas.map(({ nome, valor }) => <div key={nome}>
+              <dt>{nome}</dt><dd>{valor}</dd>
+            </div>)}
+          </dl>}
+          <p className="product-details-note">
+            Antes de comprar, confira com o brechó as medidas e os detalhes de conservação que não estiverem na descrição.
+          </p>
+        </section>
         <div className="info-box">
           <HandHeart size={22} />
           <p>
-            10% do valor dos produtos é destinado à ISAC e 90% ao brechó. Os
-            repasses são conciliados manualmente.
+            Nas compras pelo aplicativo, 10% do valor dos produtos apoia a ISAC.
+            O restante fica para o brechó, descontadas as tarifas de pagamento.
           </p>
         </div>
         <details className="disclosure">
@@ -608,7 +620,7 @@ export default function App() {
           <ArrowRight size={18} />
         </button>
         <p className="demo-note">
-          O pedido reserva estoque. Nenhum pagamento é processado online.
+          A disponibilidade é confirmada ao registrar o pedido. Entrega ou retirada a combinar.
         </p>
         <section>
           <SectionTitle title="Outros bons encontros" />
@@ -693,8 +705,8 @@ export default function App() {
                 Continuar <ArrowRight size={18} />
               </Link>
               <p className="demo-note">
-                A reserva é feita ao registrar o pedido. Pagamento combinado com
-                o brechó.
+                A reserva é feita ao registrar o pedido. O pagamento de teste
+                depende da vinculação do brechó ao Sandbox.
               </p>
             </div>
             <Link className="center-link" to="/catalogo">
@@ -743,7 +755,7 @@ export default function App() {
     return (
       <>
         <Heading
-          eyebrow="PEDIDO COM CONFIRMAÇÃO MANUAL"
+          eyebrow="REVISÃO DO PEDIDO"
           title="Um passo para um novo ciclo."
         />
         <Pagamento
@@ -1042,6 +1054,7 @@ export default function App() {
         <Link className="text-button shop-public-entry" to="/pecas-das-lojas">
           Ver peças publicadas pelos brechós <ArrowRight size={16} />
         </Link>
+        {isLoja && <Link className="btn full shop-entry" to="/loja/integracoes">Conectar Mercado Livre e consultar frete</Link>}
         <div className="menu-list">
           {[
             ["/favoritos", "Meus favoritos", Heart, favorites.length],
@@ -1302,6 +1315,7 @@ export default function App() {
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/login" element={<Login />} />
             <Route path="/loja/produtos" element={<ProdutosLoja />} />
+            <Route path="/loja/integracoes" element={<Integracoes />} />
             <Route
               path="/pecas-das-lojas"
               element={<Navigate to="/catalogo" replace />}

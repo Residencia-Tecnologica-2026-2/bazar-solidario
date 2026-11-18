@@ -9,6 +9,8 @@ import {
   fotoAnuncio,
   meusAnuncios,
   salvarAnuncio,
+  AnuncioSemelhanteErro,
+  type AnuncioSemelhante,
   type Anuncio,
   type Categoria,
 } from "../services/anuncios";
@@ -33,6 +35,10 @@ export function ProdutosLoja() {
     formSection = useRef<HTMLElement>(null),
     ocupado = useRef(false);
   const loja = sessao?.usuario.role === "LOJA";
+  const [semelhantes, setSemelhantes] = useState<AnuncioSemelhante[]>([]);
+  const confirmarOutraPeca = useRef(false);
+  const tentativaPublicacao = useRef<{ assinatura: string; chave: string; imagens: string[] } | null>(null);
+  const storagePublicacao = `bs-publicacao-pendente-${sessao?.usuario.id}`;
   useEffect(() => {
     if (!foto) {
       setPreview("");
@@ -71,6 +77,7 @@ export function ProdutosLoja() {
     setUltima(lista.last);
   }
   function editar(item: Anuncio | null) {
+    setSemelhantes([]); confirmarOutraPeca.current = false;
     setEdicao(item);
     setFoto(null);
     setErro("");
@@ -101,19 +108,40 @@ export function ProdutosLoja() {
         );
       if (!foto && !edicao?.imagens.length)
         throw new Error("Adicione uma foto da peça.");
-      const imagens = foto ? [await enviarFoto(foto)] : edicao!.imagens;
+      const titulo = String(dados.get("titulo")).trim();
+      const descricao = String(dados.get("descricao")).trim();
+      const codigoPeca = String(dados.get("codigoPeca") || "").trim().toUpperCase();
+      const hashFoto = foto ? Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", await foto.arrayBuffer())))
+        .map(b => b.toString(16).padStart(2, "0")).join("") : "";
+      const assinatura = JSON.stringify([titulo, descricao, preco, estoque, Number(dados.get("categoria")), codigoPeca, hashFoto]);
+      if (!edicao && !tentativaPublicacao.current) {
+        try { tentativaPublicacao.current = JSON.parse(sessionStorage.getItem(storagePublicacao) || "null"); } catch { /* sessão sem tentativa anterior */ }
+      }
+      const anterior = !edicao && tentativaPublicacao.current?.assinatura === assinatura ? tentativaPublicacao.current : null;
+      const imagens = anterior?.imagens ?? (foto ? [await enviarFoto(foto)] : edicao!.imagens);
+      const chave = anterior?.chave ?? crypto.randomUUID();
+      if (!edicao) {
+        tentativaPublicacao.current = { assinatura, chave, imagens };
+        try { sessionStorage.setItem(storagePublicacao, JSON.stringify(tentativaPublicacao.current)); } catch { /* mantém proteção em memória */ }
+      }
       await salvarAnuncio(
         {
+          ...(codigoPeca ? { codigoPeca } : {}),
+          confirmarSemelhante: confirmarOutraPeca.current,
           versao: edicao?.versao,
-          titulo: String(dados.get("titulo")).trim(),
-          descricao: String(dados.get("descricao")).trim(),
+          titulo,
+          descricao,
           preco,
           estoque,
           categoriaId: Number(dados.get("categoria")),
           imagens,
         },
         edicao?.id,
+        chave,
       );
+      tentativaPublicacao.current = null;
+      try { sessionStorage.removeItem(storagePublicacao); } catch { /* armazenamento indisponível */ }
+      setSemelhantes([]); confirmarOutraPeca.current = false;
       setAviso(edicao ? "Peça atualizada." : "Peça publicada no catálogo.");
       setEdicao(null);
       setFoto(null);
@@ -121,6 +149,7 @@ export function ProdutosLoja() {
       await atualizar();
       window.dispatchEvent(new Event("catalogo-atualizado"));
     } catch (e) {
+      if (e instanceof AnuncioSemelhanteErro) setSemelhantes(e.semelhantes);
       setErro(
         e instanceof Error ? e.message : "Não foi possível salvar a peça.",
       );
@@ -200,9 +229,17 @@ export function ProdutosLoja() {
           key={edicao?.id ?? "nova"}
           ref={formRef}
           onSubmit={enviar}
+          onChange={() => { setSemelhantes([]); confirmarOutraPeca.current = false; }}
           aria-busy={enviando}
         >
           <fieldset disabled={enviando} className="signup-fields">
+            <label>
+              Código da peça no estoque
+              <input name="codigoPeca" maxLength={40} pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,39}"
+                defaultValue={edicao?.codigoPeca?.startsWith("LEG-") ? "" : edicao?.codigoPeca ?? ""}
+                placeholder="Ex.: CAM-001 · opcional" />
+              <span className="field-help">Use o código da etiqueta da peça. Se deixar vazio, geramos um código único. Duas peças diferentes precisam de códigos diferentes.</span>
+            </label>
             <label>
               Nome da peça
               <input
@@ -297,6 +334,20 @@ export function ProdutosLoja() {
                   : "Publicar peça"}
               <Plus size={20} />
             </button>
+            {semelhantes.length > 0 && <div className="duplicate-notice" role="region" aria-label="Confira anúncios semelhantes">
+              <h3>Você já anunciou esta peça?</h3>
+              <p>Encontramos anúncios parecidos na sua loja. Confira antes de publicar novamente.</p>
+              <ul>{semelhantes.map(item => <li key={item.id}>
+                <strong>{item.titulo}</strong>
+                <span>{item.codigoPeca} · {item.estado === "ATIVO" ? "Publicado" : item.estado === "INATIVO" ? "Oculto" : "Vendido"}</span>
+                <small>{item.motivos.join(" · ")}</small>
+                <Link to={`/peca/${item.id}`} target="_blank" rel="noopener noreferrer">Ver anúncio existente</Link>
+              </li>)}</ul>
+              <button type="button" className="btn full" onClick={() => {
+                confirmarOutraPeca.current = true; formRef.current?.requestSubmit();
+              }}>É outra peça. Publicar com novo código</button>
+              <p>Se for a mesma peça, use a edição do anúncio existente em “Minhas peças”.</p>
+            </div>}
             {edicao && (
               <button
                 type="button"
@@ -352,6 +403,7 @@ export function ProdutosLoja() {
                       : "Vendido"}
                 </span>
                 <h3>{item.titulo}</h3>
+              <p className="stock-code">Código: {item.codigoPeca || `LEG-${item.id}`}</p>
                 <p>
                   {money(item.preco)} · {item.estoque} unidade(s)
                 </p>

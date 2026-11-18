@@ -12,6 +12,7 @@ backend/target/
 *.log
 
 backend/.local-secrets.properties
+backend/.asaas-local.properties
 
 /tmp/
 

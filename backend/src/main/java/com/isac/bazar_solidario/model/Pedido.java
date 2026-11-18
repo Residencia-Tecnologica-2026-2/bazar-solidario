@@ -18,4 +18,5 @@ public class Pedido {
  @Column(nullable=false,precision=16,scale=2) private BigDecimal valorBrecho;
  @Column(nullable=false) private LocalDateTime criadoEm=LocalDateTime.now();
  @OneToMany(mappedBy="pedido",cascade=CascadeType.ALL,orphanRemoval=true) private List<ItemPedido> itens=new ArrayList<>();
+ @OneToOne(mappedBy="pedido",fetch=FetchType.LAZY) private Pagamento pagamento;
 }

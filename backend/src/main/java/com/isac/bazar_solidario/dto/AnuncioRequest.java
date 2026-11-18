@@ -44,7 +44,10 @@ public record AnuncioRequest(
                 @Pattern(regexp = "^(https?://.+|/uploads/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(jpg|png|webp))$",
                         message = "A imagem deve usar uma URL HTTP(S) ou um caminho gerado por /uploads")
                 String> imagens,
-        @PositiveOrZero Long versao
+        @PositiveOrZero Long versao,
+        @Size(max=40) @Pattern(regexp="^$|[A-Za-z0-9][A-Za-z0-9._-]{0,39}") String codigoPeca,
+        Boolean confirmarSemelhante
 ) {
     public AnuncioRequest(String titulo,String descricao,BigDecimal preco,Integer estoque,Long categoriaId,List<String> imagens) {this(titulo,descricao,preco,estoque,categoriaId,imagens,0L);}
+    public AnuncioRequest(String titulo,String descricao,BigDecimal preco,Integer estoque,Long categoriaId,List<String> imagens,Long versao) {this(titulo,descricao,preco,estoque,categoriaId,imagens,versao,null,false);}
 }

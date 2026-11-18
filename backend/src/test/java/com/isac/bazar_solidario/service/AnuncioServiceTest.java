@@ -41,6 +41,8 @@ class AnuncioServiceTest {
     private AnuncioRepository anuncioRepository;
     @Mock
     private CategoriaRepository categoriaRepository;
+    @Mock private jakarta.persistence.EntityManager em;
+    @Mock private AnunciosSemelhantesService semelhantes;
     @InjectMocks
     private AnuncioService service;
 

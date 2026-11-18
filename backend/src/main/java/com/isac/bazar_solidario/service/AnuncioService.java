@@ -27,13 +27,54 @@ public class AnuncioService {
 
     private final AnuncioRepository anuncioRepository;
     private final CategoriaRepository categoriaRepository;
+    private final jakarta.persistence.EntityManager em;
+    private final AnunciosSemelhantesService semelhantes;
+
+    @Transactional
+    public AnuncioResponse criar(AnuncioRequest req,Usuario vendedor,String chave) {
+        if(chave==null || !chave.matches("[A-Za-z0-9-]{16,64}"))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Chave de publicação inválida.");
+        em.find(Usuario.class,vendedor.getId(),jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        String assinatura;
+        try {
+            String canonico=new tools.jackson.databind.ObjectMapper().writeValueAsString(java.util.Arrays.asList(
+                req.titulo(),req.descricao(),req.preco(),req.estoque(),req.categoriaId(),req.imagens(),req.codigoPeca()));
+            assinatura=java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(canonico.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        }catch(java.security.NoSuchAlgorithmException e){throw new IllegalStateException(e);}
+        if(chave!=null){
+            var anterior=anuncioRepository.findByVendedorIdAndChavePublicacao(vendedor.getId(),chave);
+            if(anterior.isPresent()){
+                if(!assinatura.equals(anterior.get().getAssinaturaPublicacao()))throw new ResponseStatusException(HttpStatus.CONFLICT,"Esta tentativa já foi usada para outra peça. Inicie um novo cadastro.");
+                return AnuncioResponse.de(anterior.get());
+            }
+        }
+        String codigo=codigoValido(req.codigoPeca());
+        validarCodigo(codigo,vendedor.getId(),null);
+        if(!Boolean.TRUE.equals(req.confirmarSemelhante())){
+            var suspeitos=semelhantes.buscar(req,vendedor.getId());
+            if(!suspeitos.isEmpty())throw new com.isac.bazar_solidario.exception.AnuncioSemelhanteException(suspeitos);
+        }
+        Anuncio anuncio=new Anuncio();anuncio.setVendedor(vendedor);preencher(anuncio,req);
+        anuncio.setCodigoPeca(codigo==null?"PEC-"+java.util.UUID.randomUUID().toString().replace("-","").substring(0,16).toUpperCase(java.util.Locale.ROOT):codigo);
+        anuncio.setChavePublicacao(chave);anuncio.setAssinaturaPublicacao(assinatura);
+        return AnuncioResponse.de(anuncioRepository.save(anuncio));
+    }
+
+    private String codigoValido(String codigo){
+        if(codigo==null || codigo.isBlank())return null;
+        var normalizado=codigo.trim().toUpperCase(java.util.Locale.ROOT);
+        if(normalizado.startsWith("LEG-"))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O prefixo LEG- é reservado às peças antigas.");
+        return normalizado;
+    }
+    private void validarCodigo(String codigo,Long vendedor,Long ignorar){
+        if(codigo==null)return;
+        var existente=anuncioRepository.findByVendedorIdAndCodigoPeca(vendedor,codigo);
+        if(existente.isPresent() && !existente.get().getId().equals(ignorar))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Já existe uma peça com esse código na sua loja. Edite o anúncio existente ou use outro código para outra peça.");
+    }
 
     @Transactional
     public AnuncioResponse criar(AnuncioRequest req, Usuario vendedor) {
-        Anuncio anuncio = new Anuncio();
-        anuncio.setVendedor(vendedor); // sempre o usuário autenticado, nunca vindo do frontend
-        preencher(anuncio, req);
-        return AnuncioResponse.de(anuncioRepository.save(anuncio));
+        return criar(req,vendedor,java.util.UUID.randomUUID().toString());
     }
 
     /**
@@ -89,11 +130,16 @@ public class AnuncioService {
 
     @Transactional
     public AnuncioResponse atualizar(Long id, AnuncioRequest req, Usuario usuario) {
+        if(req.codigoPeca()!=null)em.find(Usuario.class,usuario.getId(),jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
         Anuncio anuncio = buscarDoDono(id, usuario);
+        exigirCanalLocal(id);
         if(req.versao()==null || !req.versao().equals(anuncio.getVersao())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"A peça mudou desde que você abriu o formulário. Recarregue antes de editar.");
         }
         preencher(anuncio, req);
+        if(req.codigoPeca()!=null && !req.codigoPeca().isBlank()){
+            var codigo=codigoValido(req.codigoPeca());validarCodigo(codigo,usuario.getId(),id);anuncio.setCodigoPeca(codigo);
+        }
         anuncioRepository.flush();
         return AnuncioResponse.de(anuncio);
     }
@@ -109,12 +155,19 @@ public class AnuncioService {
     @Transactional
     public AnuncioResponse ativar(Long id, Usuario usuario) {
         Anuncio anuncio = buscarDoDono(id, usuario);
+        exigirCanalLocal(id);
         exigirNaoVendido(anuncio);
         anuncio.ativar();
         return AnuncioResponse.de(anuncio);
     }
 
     // ---------- auxiliares ----------
+
+    private void exigirCanalLocal(Long id) {
+        if(em.find(com.isac.bazar_solidario.model.MercadoLivreVinculo.class,id)!=null
+                || em.find(com.isac.bazar_solidario.model.MercadoLivrePublicacao.class,id)!=null)
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Esta peça possui vínculo ou publicação pendente no Mercado Livre. Confira esse canal antes de alterar a peça no ISAC.");
+    }
 
     private Anuncio buscarDoDono(Long id, Usuario usuario) {
         Anuncio anuncio = anuncioRepository.bloquear(id).orElseThrow(this::naoEncontrado);

@@ -17,3 +17,4 @@ createRoot(document.getElementById("root")!).render(
 
 import './styles/icons.css';
 import './styles/forms.css';
+import './styles/product-detail.css';
