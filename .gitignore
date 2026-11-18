@@ -12,7 +12,15 @@ backend/target/
 *.log
 
 backend/.local-secrets.properties
+backend/.asaas-local.properties
 
 /tmp/
 
 __pycache__/
+frontend/android/.gradle/
+frontend/android/**/build/
+frontend/android/local.properties
+frontend/android/**/capacitor-cordova-android-plugins/
+frontend/android/app/src/main/assets/public/
+*.jks
+*.keystore

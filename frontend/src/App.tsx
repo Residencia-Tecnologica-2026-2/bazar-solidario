@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { Apresentacao, CHAVE_APRESENTACAO } from "./components/Apresentacao";
 import {
   Heart,
   ShoppingBag,
@@ -56,6 +57,7 @@ import { Cadastro } from "./components/Cadastro";
 import { Login } from "./components/Login";
 import { ProdutosLoja } from "./components/ProdutosLoja";
 import { Pedidos } from "./components/Pedidos";
+import { Integracoes } from "./components/Integracoes";
 import { api, fotoAnuncio, type Anuncio } from "./services/anuncios";
 import { Comunidade } from "./components/Comunidade";
 import { Pagamento } from "./components/Pagamento";
@@ -275,9 +277,15 @@ export default function App() {
   const [cart, setCart] = useState(() => savedIds("bs-cart"));
   const [favorites, setFavorites] = useState(() => savedIds("bs-favorites"));
   const [notice, setNotice] = useState("");
-  const [intro, setIntro] = useState(0);
+
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (location.pathname !== "/") return;
+    try {
+      if (!localStorage.getItem(CHAVE_APRESENTACAO)) navigate("/boas-vindas", { replace: true });
+    } catch { /* Navegação disponível sem armazenamento local. */ }
+  }, [location.pathname, navigate]);
   useEffect(() => {
     try {
       localStorage.setItem("bs-cart-api", JSON.stringify(cart));
@@ -542,10 +550,15 @@ export default function App() {
     );
   }
   function ProductPage() {
+    if (catalogLoading) return <p role="status">Carregando os detalhes da peça…</p>;
     const p = products.find(
       (x) => x.id === Number(location.pathname.split("/").pop()),
     );
     if (!p) return <Missing />;
+    const caracteristicas = [
+      { nome: "Tamanho", valor: p.size },
+      { nome: "Cor", valor: p.color },
+    ].filter(({ valor }) => valor && valor !== "Ver descrição");
     return (
       <>
         <div className="detail-photo">
@@ -562,34 +575,41 @@ export default function App() {
             <Heart size={21} />
           </button>
         </div>
-        <div className="detail-title">
+        <div className="detail-title product-heading">
           <div>
             <p className="eyebrow">{p.shop}</p>
             <h1>{p.name}</h1>
           </div>
-          <strong>{money(p.price)}</strong>
         </div>
-        <div className="specs">
-          <div>
-            <span>Tamanho</span>
-            <strong>{p.size}</strong>
+        <div className="product-purchase-summary">
+          <div className="product-price">
+            <span>Valor da peça</span>
+            <strong>{money(p.price)}</strong>
           </div>
-          <div>
-            <span>Cor</span>
-            <strong>{p.color}</strong>
-          </div>
-          <div>
-            <span>Condição</span>
-            <strong>Ver descrição</strong>
-          </div>
+          <span className="product-category">{p.category}</span>
         </div>
-        <h2 className="small-title">Uma peça, novas possibilidades</h2>
-        <p className="body-copy">{p.description}</p>
+        <section className="product-description" aria-labelledby="descricao-peca">
+          <div className="product-description-heading">
+            <span className="product-section-marker" aria-hidden="true" />
+            <h2 id="descricao-peca">Sobre esta peça</h2>
+          </div>
+          <p className="product-description-copy">
+            {p.description.trim() || "O brechó ainda não adicionou uma descrição para esta peça."}
+          </p>
+          {caracteristicas.length > 0 && <dl className="product-attributes">
+            {caracteristicas.map(({ nome, valor }) => <div key={nome}>
+              <dt>{nome}</dt><dd>{valor}</dd>
+            </div>)}
+          </dl>}
+          <p className="product-details-note">
+            Antes de comprar, confira com o brechó as medidas e os detalhes de conservação que não estiverem na descrição.
+          </p>
+        </section>
         <div className="info-box">
           <HandHeart size={22} />
           <p>
-            10% do valor dos produtos é destinado à ISAC e 90% ao brechó. Os
-            repasses são conciliados manualmente.
+            Nas compras pelo aplicativo, 10% do valor dos produtos apoia a ISAC.
+            O restante fica para o brechó, descontadas as tarifas de pagamento.
           </p>
         </div>
         <details className="disclosure">
@@ -608,7 +628,7 @@ export default function App() {
           <ArrowRight size={18} />
         </button>
         <p className="demo-note">
-          O pedido reserva estoque. Nenhum pagamento é processado online.
+          A disponibilidade é confirmada ao registrar o pedido. Entrega ou retirada a combinar.
         </p>
         <section>
           <SectionTitle title="Outros bons encontros" />
@@ -693,8 +713,8 @@ export default function App() {
                 Continuar <ArrowRight size={18} />
               </Link>
               <p className="demo-note">
-                A reserva é feita ao registrar o pedido. Pagamento combinado com
-                o brechó.
+                A reserva é feita ao registrar o pedido. O pagamento de teste
+                depende da vinculação do brechó ao Sandbox.
               </p>
             </div>
             <Link className="center-link" to="/catalogo">
@@ -743,7 +763,7 @@ export default function App() {
     return (
       <>
         <Heading
-          eyebrow="PEDIDO COM CONFIRMAÇÃO MANUAL"
+          eyebrow="REVISÃO DO PEDIDO"
           title="Um passo para um novo ciclo."
         />
         <Pagamento
@@ -1042,6 +1062,7 @@ export default function App() {
         <Link className="text-button shop-public-entry" to="/pecas-das-lojas">
           Ver peças publicadas pelos brechós <ArrowRight size={16} />
         </Link>
+        {isLoja && <Link className="btn full shop-entry" to="/loja/integracoes">Conectar Mercado Livre e consultar frete</Link>}
         <div className="menu-list">
           {[
             ["/favoritos", "Meus favoritos", Heart, favorites.length],
@@ -1051,6 +1072,7 @@ export default function App() {
             ["/ongs", "Conhecer as ONGs", HandHeart, ""],
             ["/sobre", "Como funciona o projeto", Leaf, ""],
             ["/vender", "Quero ser parceiro", Plus, ""],
+            ["/boas-vindas", "Rever apresentação do app", Leaf, ""],
             ["/faq", "Dúvidas frequentes", Info, ""],
             ["/contato", "Fale com a equipe", UserRound, ""],
           ].map(([url, label, Icon, count]) => {
@@ -1113,60 +1135,6 @@ export default function App() {
       </>
     );
   }
-  function Onboarding() {
-    const slides = [
-      [
-        "Peças com história.",
-        "Descubra achados únicos e dê uma nova vida ao que já existe.",
-        Shirt,
-      ],
-      [
-        "Escolhas com propósito.",
-        "Conheça uma proposta de moda circular que fortalece a comunidade.",
-        HandHeart,
-      ],
-      [
-        "Novas conexões.",
-        "Encontre brechós independentes e acompanhe os encontros na ONG.",
-        Store,
-      ],
-    ] as const;
-    const [title, text, Icon] = slides[intro];
-    return (
-      <div className="onboarding">
-        <button className="text-button" onClick={() => navigate("/")}>
-          Pular <ArrowRight size={16} />
-        </button>
-        <div className="onboarding-art">
-          <Icon size={100} strokeWidth={1} />
-          <span>
-            <Leaf size={35} />
-          </span>
-        </div>
-        <p className="eyebrow">BEM-VINDO AO BAZAR SOLIDÁRIO</p>
-        <h1>{title}</h1>
-        <p>{text}</p>
-        <div className="dots">
-          {slides.map((s, i) => (
-            <button
-              key={s[0]}
-              aria-label={`Ver apresentação ${i + 1}`}
-              aria-current={i === intro ? "step" : undefined}
-              className={i === intro ? "active" : ""}
-              onClick={() => setIntro(i)}
-            />
-          ))}
-        </div>
-        <button
-          className="btn full"
-          onClick={() => (intro < 2 ? setIntro(intro + 1) : navigate("/"))}
-        >
-          {intro < 2 ? "Continuar" : "Começar a descobrir"}
-          <ArrowRight size={18} />
-        </button>
-      </div>
-    );
-  }
   function Missing() {
     return (
       <>
@@ -1191,7 +1159,7 @@ export default function App() {
     "/login": "Entrar",
   };
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${location.pathname === "/boas-vindas" ? "intro-shell" : ""}`}>
       <ProdutosContext.Provider value={products}>
         <a className="skip-link" href="#conteudo">
           Ir para o conteúdo
@@ -1227,8 +1195,8 @@ export default function App() {
           </Link>
         </header>
         <main id="conteudo" tabIndex={-1}>
-          {catalogLoading && <p role="status">Carregando catálogo…</p>}
-          {catalogError && (
+          {catalogLoading && location.pathname !== "/boas-vindas" && <p role="status">Carregando catálogo…</p>}
+          {catalogError && location.pathname !== "/boas-vindas" && (
             <div role="alert">
               <p>{catalogError}</p>
               <button onClick={() => setRefresh((v) => v + 1)}>
@@ -1302,11 +1270,12 @@ export default function App() {
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/login" element={<Login />} />
             <Route path="/loja/produtos" element={<ProdutosLoja />} />
+            <Route path="/loja/integracoes" element={<Integracoes />} />
             <Route
               path="/pecas-das-lojas"
               element={<Navigate to="/catalogo" replace />}
             />
-            <Route path="/boas-vindas" element={<Onboarding />} />
+            <Route path="/boas-vindas" element={<Apresentacao />} />
             <Route path="/faq" element={<Faq />} />
             <Route
               path="/privacidade"
@@ -1318,7 +1287,7 @@ export default function App() {
                     navegador. O cadastro envia nome, e-mail e senha ao servidor
                     do projeto. A senha não é salva no navegador. Os formulários
                     de contato, parceria e eventos continuam sendo prévias sem
-                    envio. Nenhum pagamento é processado.
+                    envio. O Pix está disponível apenas no Asaas Sandbox, com dados fictícios e sem dinheiro real.
                   </p>
                   <h2 className="small-title">Fotografias externas</h2>
                   <p className="body-copy">
@@ -1353,8 +1322,7 @@ export default function App() {
                   <p className="body-copy">
                     Este app web usa React e TypeScript com uma API Spring Boot.
                     Catálogo, lojas e encontros são carregados do servidor.
-                    Pedidos são registrados sem processamento de pagamento
-                    online.
+                    Pedidos reservam estoque. O Pix e a divisão de valores são testados no Asaas Sandbox, sem dinheiro real.
                   </p>
                   <p className="body-copy">
                     O registro do pedido reserva estoque no servidor e aguarda o

@@ -13,9 +13,30 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class SecurityConfig {
+
+    /** Origem do WebView Android. A API usa Bearer, nunca cookies entre origens. */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${PUBLIC_APP_URL:https://isac-brecho.vercel.app}") String publicAppUrl) {
+        var cors = new CorsConfiguration();
+        // No proxy HTTPS do Vercel, a origem pública pode diferir da URL interna do contêiner.
+        cors.setAllowedOrigins(List.of("https://localhost", publicAppUrl.replaceAll("/+$", "")));
+        cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "Idempotency-Key"));
+        cors.setAllowCredentials(false);
+        cors.setMaxAge(3600L);
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cors);
+        return source;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -25,12 +46,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
         http
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // cadastro e login são públicos (é assim que se consegue o token)
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/health", "/health/live").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/assets/**", "/brand/**", "/icons/**", "/products/**", "/onboarding/**", "/favicon.ico", "/index.html").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/integracoes/mercadolivre/callback").permitAll()
+                        .requestMatchers("/integracoes/mercadolivre/**").hasRole("LOJA")
+                        .requestMatchers(HttpMethod.POST, "/webhooks/asaas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/pagamentos/configuracao").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/uploads/**", "/home").permitAll()
                         .requestMatchers(HttpMethod.POST, "/uploads").authenticated()

@@ -4,6 +4,8 @@ import {
   criarPedido,
   listarPedidos,
   mudarPedido,
+  iniciarPagamento,
+  consultarPagamento,
 } from "../src/services/pedidos.ts";
 import { obterSessao } from "../src/services/usuarios.ts";
 const originalFetch = globalThis.fetch;
@@ -77,4 +79,26 @@ test("cancelamento usa rota autenticada sem mandar preço ou dono", async () => 
     return Response.json({ id: 9, estado: "CANCELADO" });
   };
   await mudarPedido(9, "cancelar");
+});
+
+test("pagamento envia CPF e token sem permitir alterar preço, comissão ou carteira", async () => {
+  sessao();
+  globalThis.fetch = async (url, init) => {
+    assert.equal(url, "/api/pedidos/9/pagamento");
+    assert.equal(new Headers(init?.headers).get("Authorization"), "Bearer token-cliente");
+    assert.equal(init?.method, "POST");
+    assert.deepEqual(JSON.parse(String(init?.body)), { cpf: "12345678909" });
+    return Response.json({ pedidoId: 9, estado: "AGUARDANDO_PAGAMENTO" });
+  };
+  await iniciarPagamento(9, "12345678909");
+});
+
+test("consulta de confirmação preserva aviso de reconciliação do servidor", async () => {
+  sessao();
+  globalThis.fetch = async (url, init) => {
+    assert.equal(url, "/api/pedidos/9/pagamento");
+    assert.equal(init?.body, undefined);
+    return Response.json({ erro: "A cobrança precisa ser conciliada antes de outra tentativa." }, { status: 409 });
+  };
+  await assert.rejects(consultarPagamento(9), /precisa ser conciliada/);
 });

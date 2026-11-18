@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -33,6 +34,33 @@ class FluxoPrincipalIntegrationTest {
     @Autowired MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Autowired CategoriaRepository categoriaRepository;
+
+    @Test
+    void fotosDaApresentacaoEMarcaCarregamSemLoginNoSitePublicado() throws Exception {
+        for (String path : new String[]{"/onboarding/test-photo.svg", "/brand/test-logo.svg"}) {
+            mockMvc.perform(get(path).header("Origin", "https://isac-brecho.vercel.app"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith("image/svg+xml"));
+        }
+        mockMvc.perform(get("/api/anuncios/meus")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void androidPermitePreflightComBearerSemLiberarOrigensArbitrarias() throws Exception {
+        mockMvc.perform(get("/api/anuncios").header("Origin", "https://isac-brecho.vercel.app"))
+                .andExpect(status().isOk());
+        mockMvc.perform(options("/api/pedidos")
+                        .header("Origin", "https://localhost")
+                        .header("Access-Control-Request-Method", "POST")
+                        .header("Access-Control-Request-Headers", "authorization,content-type,idempotency-key"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                        .string("Access-Control-Allow-Origin", "https://localhost"));
+        mockMvc.perform(options("/api/pedidos")
+                        .header("Origin", "https://origem-nao-autorizada.example")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isForbidden());
+    }
 
     @Test
     void cadastroLoginAnunciosEncontrosHomeEFotosFuncionamIntegrados() throws Exception {
@@ -74,6 +102,7 @@ class FluxoPrincipalIntegrationTest {
         long categoriaId = categoriaRepository.findAll().stream()
                 .findFirst().orElseThrow().getId();
         mockMvc.perform(post("/anuncios")
+                        .header("Idempotency-Key",java.util.UUID.randomUUID().toString())
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

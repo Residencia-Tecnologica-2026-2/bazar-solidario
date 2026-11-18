@@ -11,6 +11,11 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface AnuncioRepository
         extends JpaRepository<Anuncio, Long>, JpaSpecificationExecutor<Anuncio> {
 
+    java.util.Optional<Anuncio> findByVendedorIdAndChavePublicacao(Long vendedorId,String chave);
+    java.util.Optional<Anuncio> findByVendedorIdAndCodigoPeca(Long vendedorId,String codigo);
+    @EntityGraph(attributePaths={"imagens","categoria"})
+    java.util.List<Anuncio> findByVendedorId(Long vendedorId);
+
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @org.springframework.data.jpa.repository.Query("select a from Anuncio a where a.id=:id")
     java.util.Optional<Anuncio> bloquear(@org.springframework.data.repository.query.Param("id") Long id);

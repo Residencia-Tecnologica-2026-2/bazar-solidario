@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarPedidos, mudarPedido, type Pedido } from "../services/pedidos";
 import { obterSessao } from "../services/usuarios";
+import { PagamentoOnline } from "./PagamentoOnline";
 const dinheiro = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const estados: Record<string, string> = {
@@ -16,6 +17,7 @@ export function Pedidos() {
   const [last, setLast] = useState(true);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<number | null>(null);
+  const [vinculados, setVinculados] = useState<number[]>([]);
   const sessao = obterSessao();
   const loja = sessao?.usuario.role === "LOJA";
   useEffect(() => {
@@ -61,8 +63,7 @@ export function Pedidos() {
     <section className="merchant-page">
       <h1>{loja ? "Pedidos recebidos" : "Meus pedidos"}</h1>
       <p>
-        O aceite da loja não comprova pagamento. Valores e repasses são
-        conciliados manualmente.
+        O aceite da loja não comprova pagamento. A confirmação online é consultada no provedor.
       </p>
       {erro && <p role="alert">{erro}</p>}
       {loading && <p role="status">Carregando pedidos…</p>}
@@ -90,9 +91,11 @@ export function Pedidos() {
             </p>
           )}
           <p>
-            ISAC (10%): {dinheiro(p.valorIsac)} · Brechó (90%):{" "}
+            ISAC (10%): {dinheiro(p.valorIsac)} · Brechó antes das tarifas:{" "}
             {dinheiro(p.valorBrecho)}
           </p>
+          {p.estado !== "CANCELADO" && <PagamentoOnline pedidoId={p.id} inicial={p.pagamento} cliente={!loja}
+            onVinculado={() => setVinculados(v => v.includes(p.id) ? v : [...v, p.id])} />}
           {p.estado === "AGUARDANDO_CONFIRMACAO_MANUAL" && loja && (
             <button
               className="btn"
@@ -102,7 +105,7 @@ export function Pedidos() {
               Aceitar pedido
             </button>
           )}
-          {p.estado !== "CANCELADO" &&
+          {p.estado !== "CANCELADO" && !p.pagamento && !vinculados.includes(p.id) &&
             (loja || p.estado === "AGUARDANDO_CONFIRMACAO_MANUAL") && (
               <button
                 className="text-button"

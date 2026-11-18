@@ -34,9 +34,9 @@ class PedidoIntegrationTest {
     }
 
     long anuncio(String token, String preco, int estoque) throws Exception {
-        var result = mvc.perform(post("/anuncios").header("Authorization", "Bearer " + token)
+        var result = mvc.perform(post("/anuncios").header("Idempotency-Key",UUID.randomUUID().toString()).header("Authorization", "Bearer " + token)
             .contentType(MediaType.APPLICATION_JSON).content("""
-            {"titulo":"Peça teste","preco":%s,"estoque":%d,"categoriaId":%d}
+            {"titulo":"Peça teste","preco":%s,"estoque":%d,"categoriaId":%d,"confirmarSemelhante":true}
             """.formatted(preco, estoque, categorias.findAll().get(0).getId())))
             .andExpect(status().isCreated()).andReturn();
         return json.readTree(result.getResponse().getContentAsString()).get("id").asLong();

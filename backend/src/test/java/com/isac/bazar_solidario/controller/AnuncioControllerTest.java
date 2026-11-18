@@ -178,7 +178,7 @@ class AnuncioControllerTest {
 
     @Test
     void criarSemLoginRetorna401() throws Exception {
-        mockMvc.perform(post("/anuncios").contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
+        mockMvc.perform(post("/anuncios").header("Idempotency-Key","publicacao-teste-12345678").contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -187,12 +187,15 @@ class AnuncioControllerTest {
     @Test
     @WithMockUser(username = "maria@teste.com")
     void criarAnuncioValidoRetorna201ComLocation() throws Exception {
-        when(anuncioService.criar(any(), eq(usuario))).thenReturn(resposta());
+        when(anuncioService.criar(any(), eq(usuario), org.mockito.ArgumentMatchers.anyString())).thenReturn(resposta());
 
-        mockMvc.perform(post("/anuncios").contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
+        var resultado = mockMvc.perform(post("/anuncios").header("Idempotency-Key","publicacao-teste-12345678").contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/anuncios/5")))
-                .andExpect(jsonPath("$.titulo").value("Camiseta"));
+                .andExpect(jsonPath("$.titulo").value("Camiseta")).andReturn();
+        var location = resultado.getResponse().getHeader("Location");
+        assertEquals("https://isac.example/api/anuncios/5",
+                java.net.URI.create("https://isac.example/api/anuncios").resolve(location).toString());
     }
 
     @Test
@@ -241,16 +244,16 @@ class AnuncioControllerTest {
     @Test
     @WithMockUser
     void estoqueZeroEPermitido() throws Exception {
-        when(anuncioService.criar(any(), any())).thenReturn(resposta());
+        when(anuncioService.criar(any(), any(), org.mockito.ArgumentMatchers.anyString())).thenReturn(resposta());
 
-        mockMvc.perform(post("/anuncios").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/anuncios").header("Idempotency-Key","publicacao-teste-12345678").contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"titulo":"Camiseta","preco":25,"estoque":0,"categoriaId":10}"""))
                 .andExpect(status().isCreated());
     }
 
     private void enviarInvalido(String json, String campo) throws Exception {
-        mockMvc.perform(post("/anuncios").contentType(MediaType.APPLICATION_JSON).content(json))
+        mockMvc.perform(post("/anuncios").header("Idempotency-Key","publicacao-teste-12345678").contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos['" + campo + "']").exists());
     }

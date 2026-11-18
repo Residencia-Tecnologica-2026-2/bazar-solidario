@@ -7,6 +7,7 @@ export interface Categoria {
 export interface Anuncio {
   id: number;
   versao?: number;
+  codigoPeca?: string;
   titulo: string;
   descricao: string;
   preco: number;
@@ -18,6 +19,8 @@ export interface Anuncio {
   loja?: { id: number; nome: string };
 }
 export interface DadosAnuncio {
+  codigoPeca?: string;
+  confirmarSemelhante?: boolean;
   versao?: number;
   titulo: string;
   descricao: string;
@@ -27,6 +30,11 @@ export interface DadosAnuncio {
   imagens: string[];
 }
 const base = (import.meta.env?.VITE_API_BASE_URL || "/api").replace(/\/$/, "");
+export interface AnuncioSemelhante { id: number; titulo: string; codigoPeca: string; estado: string; motivos: string[]; }
+export class AnuncioSemelhanteErro extends Error {
+  semelhantes: AnuncioSemelhante[];
+  constructor(semelhantes: AnuncioSemelhante[], mensagem: string) { super(mensagem); this.semelhantes = semelhantes; this.name = "AnuncioSemelhanteErro"; }
+}
 export function fotoAnuncio(url: string) {
   return url.startsWith("/uploads/") ? base + url : url;
 }
@@ -57,10 +65,21 @@ export async function api<T>(
     }
     if (resposta.status === 403)
       throw new Error("Você não tem permissão para esta operação.");
+    if (resposta.status === 409 && path.startsWith("/anuncios")) {
+      const erro = await resposta.json().catch(() => ({}));
+      if (erro.codigo === "ANUNCIO_SEMELHANTE" && Array.isArray(erro.semelhantes))
+        throw new AnuncioSemelhanteErro(erro.semelhantes, erro.erro);
+      throw new Error(erro.erro || "A peça mudou. Recarregue a lista antes de editar.");
+    }
     if (resposta.status === 404)
       throw new Error("O registro não foi encontrado.");
+    if (path.includes("/pagamento") || path.startsWith("/pagamentos")) {
+      const erro = await resposta.json().catch(() => ({}));
+      throw new Error(erro.erro || "Não foi possível consultar o provedor de pagamento. Tente novamente.");
+    }
     if (
       resposta.status === 409 ||
+      (path.startsWith("/integracoes/") && [400, 429, 502, 503].includes(resposta.status)) ||
       (resposta.status === 400 && path.startsWith("/pedidos"))
     ) {
       const erro = await resposta.json().catch(() => ({}));
@@ -88,12 +107,12 @@ export const meusAnuncios = (page = 0) =>
   );
 export const anunciosPublicos = (page = 0) =>
   api<{ content: Anuncio[]; last: boolean }>(`/anuncios?page=${page}&size=12`);
-export const salvarAnuncio = (dados: DadosAnuncio, id?: number) =>
+export const salvarAnuncio = (dados: DadosAnuncio, id?: number, chave?: string) =>
   api<Anuncio>(
     id ? `/anuncios/${id}` : "/anuncios",
     {
       method: id ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(!id ? { "Idempotency-Key": chave || crypto.randomUUID() } : {}) },
       body: JSON.stringify(dados),
     },
     true,

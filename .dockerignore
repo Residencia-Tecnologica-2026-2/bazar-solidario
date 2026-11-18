@@ -1,0 +1,14 @@
+.git
+**/node_modules
+**/target
+**/dist
+**/.env
+**/.env.*
+**/.local-secrets.properties
+**/.asaas-local.properties
+**/dados
+**/uploads
+**/*.log
+docs
+tools
+**/android
