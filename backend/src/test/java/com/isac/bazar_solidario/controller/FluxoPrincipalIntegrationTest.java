@@ -36,6 +36,16 @@ class FluxoPrincipalIntegrationTest {
     @Autowired CategoriaRepository categoriaRepository;
 
     @Test
+    void fotosDaApresentacaoEMarcaCarregamSemLoginNoSitePublicado() throws Exception {
+        for (String path : new String[]{"/onboarding/test-photo.svg", "/brand/test-logo.svg"}) {
+            mockMvc.perform(get(path).header("Origin", "https://isac-brecho.vercel.app"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith("image/svg+xml"));
+        }
+        mockMvc.perform(get("/api/anuncios/meus")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void androidPermitePreflightComBearerSemLiberarOrigensArbitrarias() throws Exception {
         mockMvc.perform(get("/api/anuncios").header("Origin", "https://isac-brecho.vercel.app"))
                 .andExpect(status().isOk());

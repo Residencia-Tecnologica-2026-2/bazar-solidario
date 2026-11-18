@@ -54,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/health", "/health/live").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/assets/**", "/icons/**", "/products/**", "/favicon.ico", "/index.html").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/assets/**", "/brand/**", "/icons/**", "/products/**", "/onboarding/**", "/favicon.ico", "/index.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/integracoes/mercadolivre/callback").permitAll()
                         .requestMatchers("/integracoes/mercadolivre/**").hasRole("LOJA")
                         .requestMatchers(HttpMethod.POST, "/webhooks/asaas").permitAll()
