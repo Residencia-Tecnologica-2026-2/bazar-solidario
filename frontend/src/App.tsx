@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { Apresentacao, CHAVE_APRESENTACAO } from "./components/Apresentacao";
 import {
   Heart,
   ShoppingBag,
@@ -276,9 +277,15 @@ export default function App() {
   const [cart, setCart] = useState(() => savedIds("bs-cart"));
   const [favorites, setFavorites] = useState(() => savedIds("bs-favorites"));
   const [notice, setNotice] = useState("");
-  const [intro, setIntro] = useState(0);
+
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (location.pathname !== "/") return;
+    try {
+      if (!localStorage.getItem(CHAVE_APRESENTACAO)) navigate("/boas-vindas", { replace: true });
+    } catch { /* Navegação disponível sem armazenamento local. */ }
+  }, [location.pathname, navigate]);
   useEffect(() => {
     try {
       localStorage.setItem("bs-cart-api", JSON.stringify(cart));
@@ -543,6 +550,7 @@ export default function App() {
     );
   }
   function ProductPage() {
+    if (catalogLoading) return <p role="status">Carregando os detalhes da peça…</p>;
     const p = products.find(
       (x) => x.id === Number(location.pathname.split("/").pop()),
     );
@@ -1064,6 +1072,7 @@ export default function App() {
             ["/ongs", "Conhecer as ONGs", HandHeart, ""],
             ["/sobre", "Como funciona o projeto", Leaf, ""],
             ["/vender", "Quero ser parceiro", Plus, ""],
+            ["/boas-vindas", "Rever apresentação do app", Leaf, ""],
             ["/faq", "Dúvidas frequentes", Info, ""],
             ["/contato", "Fale com a equipe", UserRound, ""],
           ].map(([url, label, Icon, count]) => {
@@ -1126,60 +1135,6 @@ export default function App() {
       </>
     );
   }
-  function Onboarding() {
-    const slides = [
-      [
-        "Peças com história.",
-        "Descubra achados únicos e dê uma nova vida ao que já existe.",
-        Shirt,
-      ],
-      [
-        "Escolhas com propósito.",
-        "Conheça uma proposta de moda circular que fortalece a comunidade.",
-        HandHeart,
-      ],
-      [
-        "Novas conexões.",
-        "Encontre brechós independentes e acompanhe os encontros na ONG.",
-        Store,
-      ],
-    ] as const;
-    const [title, text, Icon] = slides[intro];
-    return (
-      <div className="onboarding">
-        <button className="text-button" onClick={() => navigate("/")}>
-          Pular <ArrowRight size={16} />
-        </button>
-        <div className="onboarding-art">
-          <Icon size={100} strokeWidth={1} />
-          <span>
-            <Leaf size={35} />
-          </span>
-        </div>
-        <p className="eyebrow">BEM-VINDO AO BAZAR SOLIDÁRIO</p>
-        <h1>{title}</h1>
-        <p>{text}</p>
-        <div className="dots">
-          {slides.map((s, i) => (
-            <button
-              key={s[0]}
-              aria-label={`Ver apresentação ${i + 1}`}
-              aria-current={i === intro ? "step" : undefined}
-              className={i === intro ? "active" : ""}
-              onClick={() => setIntro(i)}
-            />
-          ))}
-        </div>
-        <button
-          className="btn full"
-          onClick={() => (intro < 2 ? setIntro(intro + 1) : navigate("/"))}
-        >
-          {intro < 2 ? "Continuar" : "Começar a descobrir"}
-          <ArrowRight size={18} />
-        </button>
-      </div>
-    );
-  }
   function Missing() {
     return (
       <>
@@ -1204,7 +1159,7 @@ export default function App() {
     "/login": "Entrar",
   };
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${location.pathname === "/boas-vindas" ? "intro-shell" : ""}`}>
       <ProdutosContext.Provider value={products}>
         <a className="skip-link" href="#conteudo">
           Ir para o conteúdo
@@ -1240,8 +1195,8 @@ export default function App() {
           </Link>
         </header>
         <main id="conteudo" tabIndex={-1}>
-          {catalogLoading && <p role="status">Carregando catálogo…</p>}
-          {catalogError && (
+          {catalogLoading && location.pathname !== "/boas-vindas" && <p role="status">Carregando catálogo…</p>}
+          {catalogError && location.pathname !== "/boas-vindas" && (
             <div role="alert">
               <p>{catalogError}</p>
               <button onClick={() => setRefresh((v) => v + 1)}>
@@ -1320,7 +1275,7 @@ export default function App() {
               path="/pecas-das-lojas"
               element={<Navigate to="/catalogo" replace />}
             />
-            <Route path="/boas-vindas" element={<Onboarding />} />
+            <Route path="/boas-vindas" element={<Apresentacao />} />
             <Route path="/faq" element={<Faq />} />
             <Route
               path="/privacidade"
@@ -1332,7 +1287,7 @@ export default function App() {
                     navegador. O cadastro envia nome, e-mail e senha ao servidor
                     do projeto. A senha não é salva no navegador. Os formulários
                     de contato, parceria e eventos continuam sendo prévias sem
-                    envio. Nenhum pagamento é processado.
+                    envio. O Pix está disponível apenas no Asaas Sandbox, com dados fictícios e sem dinheiro real.
                   </p>
                   <h2 className="small-title">Fotografias externas</h2>
                   <p className="body-copy">
@@ -1367,8 +1322,7 @@ export default function App() {
                   <p className="body-copy">
                     Este app web usa React e TypeScript com uma API Spring Boot.
                     Catálogo, lojas e encontros são carregados do servidor.
-                    Pedidos são registrados sem processamento de pagamento
-                    online.
+                    Pedidos reservam estoque. O Pix e a divisão de valores são testados no Asaas Sandbox, sem dinheiro real.
                   </p>
                   <p className="body-copy">
                     O registro do pedido reserva estoque no servidor e aguarda o
