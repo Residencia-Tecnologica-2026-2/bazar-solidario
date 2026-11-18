@@ -37,6 +37,8 @@ class FluxoPrincipalIntegrationTest {
 
     @Test
     void androidPermitePreflightComBearerSemLiberarOrigensArbitrarias() throws Exception {
+        mockMvc.perform(get("/api/anuncios").header("Origin", "https://isac-brecho.vercel.app"))
+                .andExpect(status().isOk());
         mockMvc.perform(options("/api/pedidos")
                         .header("Origin", "https://localhost")
                         .header("Access-Control-Request-Method", "POST")

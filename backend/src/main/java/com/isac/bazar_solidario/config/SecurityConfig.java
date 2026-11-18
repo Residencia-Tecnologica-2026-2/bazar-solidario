@@ -17,15 +17,18 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class SecurityConfig {
 
     /** Origem do WebView Android. A API usa Bearer, nunca cookies entre origens. */
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${PUBLIC_APP_URL:https://isac-brecho.vercel.app}") String publicAppUrl) {
         var cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of("https://localhost"));
+        // No proxy HTTPS do Vercel, a origem pública pode diferir da URL interna do contêiner.
+        cors.setAllowedOrigins(List.of("https://localhost", publicAppUrl.replaceAll("/+$", "")));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "Idempotency-Key"));
         cors.setAllowCredentials(false);
