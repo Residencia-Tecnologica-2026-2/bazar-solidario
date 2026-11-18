@@ -15,7 +15,11 @@
 
 Este é um piloto de **uma conta emissora vinculada a um vendedor local**, exclusivamente em Sandbox. Não é um cadastro completo de recebedores de um marketplace em produção. Lojas diferentes não podem usar a mesma conta emissora por engano: pedidos de outro vendedor são bloqueados.
 
-A chave foi validada com uma consulta somente de leitura. O teste de cobrança e divisão reais no Sandbox depende de uma segunda carteira. Os testes automatizados substituem o provedor por respostas simuladas, com banco H2 real para persistência. Eles não comprovam repasse entre contas no Asaas.
+Em 18/11/2026 o piloto foi configurado em `https://isac-brecho.vercel.app/` com duas contas Sandbox aprovadas e carteiras distintas. Foram executadas duas cobranças fictícias de R$ 20,00: uma diretamente no provedor e outra pelo aplicativo. Em ambas, o pagamento retornou `RECEIVED` e o split fixo de R$ 2,00 retornou `DONE`.
+
+No teste pelo aplicativo, cadastro, login, foto persistida no PostgreSQL, peça, reserva de estoque e pedido foram exercitados. A mesma tentativa reutilizou o checkout existente, e a confirmação simulada do Asaas atualizou automaticamente o pagamento para `PAGO` via webhook autenticado. Essa atualização foi conferida pela listagem de pedidos, sem executar a consulta manual de confirmação. A peça fictícia foi ocultada ao finalizar o teste.
+
+Os testes automatizados continuam usando respostas simuladas do provedor; a homologação acima é uma verificação adicional no Sandbox. Ela cobre esse fluxo de sucesso e recuperação, não representa aprovação para movimentar dinheiro real nem homologação de todos os cenários de estorno e falha. O piloto permanece restrito à loja de homologação vinculada no servidor.
 
 ## Preparação local
 
