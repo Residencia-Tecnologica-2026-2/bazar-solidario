@@ -11,10 +11,6 @@ O trabalho de hoje conectou as telas aos dados do sistema e organizou o fluxo en
 |Pedidos e estoque|O pedido é registrado e aguarda o aceite do brechó. As peças são reservadas; cancelar devolve o estoque. Há proteção contra pedidos repetidos e disputa da última unidade.|
 |Participação da ISAC|O servidor registra a divisão de 10% para a ISAC e 90% para o brechó. Em um pedido de R$ 85,00: R$ 8,50 para a ISAC e R$ 76,50 para o brechó.|
 
-## Como demonstrar em dois minutos
-
-1. Publique uma peça pelo painel do brechó. 2. Entre como cliente, salve a peça e registre um pedido. 3. Volte à loja, mostre o aceite ou cancelamento e explique a divisão dos valores.
-
 ## Verificação realizada
 
 Passaram 111 testes automatizados: 63 no backend e 48 na interface. Também conferimos o fluxo no navegador, o retorno do estoque e a permanência dos dados após reiniciar.

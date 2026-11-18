@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Heart, Leaf, ShoppingBag, Shirt, Store, CheckCircle2, HandHeart } from "./IsacIcons";
+import { ArrowLeft, ArrowRight, Check, Heart, ShoppingBag } from "./IsacIcons";
 import { Brand } from "./Brand";
 import "../styles/apresentacao.css";
 
@@ -32,14 +32,20 @@ export function Apresentacao() {
     </div>
     <p className="intro-count">SEU PRIMEIRO ACHADO COMEÇA AQUI · {etapa + 1}/4</p>
     <div className="intro-art" key={etapa}>
-      {etapa === 0 ? <div className="intro-purpose"><span className="intro-orbit"><Leaf size={28} /></span><div className="intro-shirt"><Shirt size={105} strokeWidth={1.2} /><span>ISAC</span></div><span className="intro-seal"><HandHeart size={23} /> Moda que faz bem</span><div className="intro-mini-label"><Store size={18} /> Brechós + você + comunidade</div></div>
+      {etapa === 0 ? <div className="intro-purpose">
+        <img src="/onboarding/brecho.jpg" alt="Peças de diferentes cores organizadas em uma arara de roupas" width="1200" height="800" fetchPriority="high" />
+        <span className="intro-photo-tag">MODA CIRCULAR · NOVAS POSSIBILIDADES</span>
+        <div className="intro-photo-caption"><span>DE UMA HISTÓRIA PARA OUTRA.</span><strong>Seu próximo achado<br /><em>já tem propósito.</em></strong><p>Você, os brechós e a comunidade.</p></div>
+      </div>
       : etapa === 1 || etapa === 2 ? <div className="intro-demo-product">
-        <div className="intro-product-art"><Shirt size={100} strokeWidth={1.2} /><span className="intro-sample">PEÇA DE EXEMPLO</span>
+        <div className="intro-product-art"><img src="/onboarding/camisa.jpg" alt="Inspiração de look com regata branca e calça jeans" width="1000" height="1500" /><span className="intro-sample">PEÇA DE EXEMPLO</span>
           {etapa === 1 && <button className={`intro-heart ${salvo ? "selected" : ""}`} aria-label={salvo ? "Remover exemplo dos favoritos" : "Salvar exemplo nos favoritos"} aria-pressed={salvo} onClick={() => setSalvo(!salvo)}><Heart size={24}  /></button>}
         </div>
-        <div className="intro-product-info"><span>BRECHÓ DA COMUNIDADE</span><h2>Uma peça, novas histórias.</h2><div className="intro-product-price"><strong>R$ 40,00</strong>{etapa === 2 && <button className="intro-add" aria-label={sacola ? "Retirar exemplo da sacola" : "Adicionar exemplo à sacola"} aria-pressed={sacola} onClick={() => setSacola(!sacola)}>{sacola ? <Check size={23} /> : <ShoppingBag size={23} />}</button>}</div></div>
+        <div className="intro-product-info"><span>BRECHÓ DA COMUNIDADE</span><h2>Regata branca, novos caminhos.</h2><div className="intro-product-price"><strong>R$ 40,00</strong>{etapa === 2 && <button className="intro-add" aria-label={sacola ? "Retirar exemplo da sacola" : "Adicionar exemplo à sacola"} aria-pressed={sacola} onClick={() => setSacola(!sacola)}>{sacola ? <Check size={23} /> : <ShoppingBag size={23} />}</button>}</div></div>
         <p className="intro-feedback" role="status">{etapa === 1 ? salvo ? "Salvou! Seus favoritos ficam na aba Salvos." : "Toque no marcador. É só um ensaio :)" : sacola ? "Na sacola! R$ 4,00 deste exemplo apoiariam a ISAC." : "Toque na sacola para experimentar."}</p>
-      </div> : <div className="intro-order"><div className="intro-order-head"><CheckCircle2 size={31} /><div><span>EXEMPLO DE ACOMPANHAMENTO</span><strong>Seu achado, passo a passo.</strong></div></div><ol><li><Check size={17} /><div><strong>Pedido registrado</strong><span>A peça fica reservada para você.</span></div></li><li className={acompanhando ? "concluido" : ""}><Store size={17} /><div><strong>{acompanhando ? "Brechó confirmou" : "Aguardando o brechó"}</strong><span>Combine a entrega ou retirada com a loja.</span></div></li><li><HandHeart size={17} /><div><strong>Pagamento acompanhado à parte</strong><span>Nesta versão, Pix apenas em ambiente de teste.</span></div></li></ol><button className="intro-preview" onClick={() => setAcompanhando(!acompanhando)}>{acompanhando ? "Rever exemplo" : "Ver uma atualização"}<ArrowRight size={17} /></button><p className="intro-feedback" role="status">{acompanhando ? "É aqui que você confere cada atualização." : "Experimente acompanhar o pedido."}</p></div>}
+      </div> : <div className="intro-order">
+        <div className="intro-order-photo"><img src="/onboarding/pecas-dobradas.jpg" alt="Roupas dobradas e organizadas, prontas para um novo ciclo" width="1200" height="800" /><span>DO ACHADO AO PRÓXIMO CAPÍTULO.</span></div>
+        <div className="intro-order-body"><div className="intro-order-head"><span>EXEMPLO DE ACOMPANHAMENTO</span><strong>Seu achado, passo a passo.</strong></div><ol><li><span className="intro-step-number">1</span><div><strong>Pedido registrado</strong><span>A peça fica reservada para você.</span></div></li><li className={acompanhando ? "concluido" : ""}><span className="intro-step-number">2</span><div><strong>{acompanhando ? "Brechó confirmou" : "Aguardando o brechó"}</strong><span>Combine a entrega ou retirada com a loja.</span></div></li><li><span className="intro-step-number">3</span><div><strong>Pagamento acompanhado à parte</strong><span>Nesta versão, Pix apenas em ambiente de teste.</span></div></li></ol><button className="intro-preview" onClick={() => setAcompanhando(!acompanhando)}>{acompanhando ? "Rever exemplo" : "Ver uma atualização"}<ArrowRight size={17} /></button><p className="intro-feedback" role="status">{acompanhando ? "É aqui que você confere cada atualização." : "Experimente acompanhar o pedido."}</p></div></div>}
     </div>
     <div className="intro-copy"><h1 ref={titulo} tabIndex={-1}>{atual.titulo}</h1><p>{atual.texto}</p></div>
     <div className="intro-actions"><button className="btn full" onClick={() => etapa === 3 ? concluir() : setEtapa(etapa + 1)}>{atual.acao}<ArrowRight size={19} /></button>{etapa > 0 && <button className="text-button" onClick={() => setEtapa(etapa - 1)}><ArrowLeft size={16} /> Voltar um passo</button>}</div>

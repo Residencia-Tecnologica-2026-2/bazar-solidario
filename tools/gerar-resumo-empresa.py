@@ -13,7 +13,6 @@ page={"title":"O que mudou no ISAC Brechó","lead":"O trabalho de hoje conectou 
 ["Dados conectados","Catálogo, lojas e encontros consultam os dados do servidor. Cadastros e pedidos ficam armazenados e continuam disponíveis após reiniciar o sistema."],
 ["Pedidos e estoque","O pedido é registrado e aguarda o aceite do brechó. As peças são reservadas; cancelar devolve o estoque. Há proteção contra pedidos repetidos e disputa da última unidade."],
 ["Participação da ISAC","O servidor registra a divisão de 10% para a ISAC e 90% para o brechó. Em um pedido de R$ 85,00: R$ 8,50 para a ISAC e R$ 76,50 para o brechó."]]},"sections":[
-["Como demonstrar em dois minutos","1. Publique uma peça pelo painel do brechó. 2. Entre como cliente, salve a peça e registre um pedido. 3. Volte à loja, mostre o aceite ou cancelamento e explique a divisão dos valores."],
 ["Verificação realizada","Passaram 111 testes automatizados: 63 no backend e 48 na interface. Também conferimos o fluxo no navegador, o retorno do estoque e a permanência dos dados após reiniciar."],
 ["O que ainda é manual","Aceitar o pedido não significa receber pagamento. Pagamento, entrega/retirada e repasse à ISAC são combinados e conciliados manualmente. O banco de produção e a publicação na internet ainda precisam de validação; os testes locais usaram H2."]
 ]}
