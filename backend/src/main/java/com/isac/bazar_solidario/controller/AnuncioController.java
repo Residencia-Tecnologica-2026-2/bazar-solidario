@@ -14,7 +14,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -69,8 +68,8 @@ public class AnuncioController {
                                                  @RequestHeader("Idempotency-Key") String chave,
                                                  Authentication authentication) {
         AnuncioResponse criado = anuncioService.criar(req, usuarioAutenticado.obter(authentication),chave);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}").buildAndExpand(criado.id()).toUri();
+        // Preserva o HTTPS e o prefixo público /api mesmo atrás de um proxy.
+        URI location = URI.create("./anuncios/" + criado.id());
         return ResponseEntity.created(location).body(criado);
     }
 

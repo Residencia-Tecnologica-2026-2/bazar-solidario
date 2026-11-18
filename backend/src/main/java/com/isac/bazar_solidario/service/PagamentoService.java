@@ -67,7 +67,7 @@ public class PagamentoService {
     }
     public void webhook(String provedorId) {
         exigir(config.configurado(),HttpStatus.SERVICE_UNAVAILABLE,"Integração indisponível.");
-        if(provedorId==null || !provedorId.matches("pay_[A-Za-z0-9]+")) return;
+        if(!identificadorValido(provedorId)) return;
         var pagamento=pagamentos.findByProvedorId(provedorId);
         // Em timeout de criação, a reconciliação pelo pedido recupera o ID via referência única.
         if(pagamento.isPresent()) reconciliar(pagamento.get().getId());
@@ -93,7 +93,7 @@ public class PagamentoService {
             catch(NumberFormatException e){throw new ResponseStatusException(HttpStatus.CONFLICT,"Valor do pagamento ausente.");}
             exigir(valor.compareTo(p.getPedido().getTotal())==0,HttpStatus.CONFLICT,"Valor do pagamento divergente.");
             String provedorId=remoto.path("id").asText();
-            exigir(provedorId.matches("pay_[A-Za-z0-9]+"),HttpStatus.CONFLICT,"Identificador de cobrança inválido.");
+            exigir(identificadorValido(provedorId),HttpStatus.CONFLICT,"Identificador de cobrança inválido.");
             exigir(p.getProvedorId()==null || p.getProvedorId().equals(provedorId),HttpStatus.CONFLICT,"Cobrança diferente da registrada.");
             p.setProvedorId(provedorId);
             String url=remoto.path("invoiceUrl").asText();
@@ -129,6 +129,9 @@ public class PagamentoService {
         });
     }
     private PagamentoResponse resposta(Long id){return tx.execute(s->PagamentoResponse.de(pagamentos.findById(id).orElseThrow()));}
+    private static boolean identificadorValido(String id) {
+        return id!=null && id.matches("pay_[A-Za-z0-9_-]{1,120}");
+    }
     static boolean cpfValido(String entrada) {
         if(entrada==null)return false;
         var cpf=entrada.replaceAll("\\D","");

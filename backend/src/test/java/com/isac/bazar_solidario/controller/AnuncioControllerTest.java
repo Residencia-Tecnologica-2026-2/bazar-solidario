@@ -189,10 +189,13 @@ class AnuncioControllerTest {
     void criarAnuncioValidoRetorna201ComLocation() throws Exception {
         when(anuncioService.criar(any(), eq(usuario), org.mockito.ArgumentMatchers.anyString())).thenReturn(resposta());
 
-        mockMvc.perform(post("/anuncios").header("Idempotency-Key","publicacao-teste-12345678").contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
+        var resultado = mockMvc.perform(post("/anuncios").header("Idempotency-Key","publicacao-teste-12345678").contentType(MediaType.APPLICATION_JSON).content(JSON_VALIDO))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/anuncios/5")))
-                .andExpect(jsonPath("$.titulo").value("Camiseta"));
+                .andExpect(jsonPath("$.titulo").value("Camiseta")).andReturn();
+        var location = resultado.getResponse().getHeader("Location");
+        assertEquals("https://isac.example/api/anuncios/5",
+                java.net.URI.create("https://isac.example/api/anuncios").resolve(location).toString());
     }
 
     @Test

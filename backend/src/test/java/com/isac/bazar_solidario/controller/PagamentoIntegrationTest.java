@@ -60,7 +60,7 @@ class PagamentoIntegrationTest {
     void mockCobranca() {
         when(gateway.cobrar(anyString(),anyString(),anyString(),anyString(),any(),any())).thenAnswer(a->
             json.readTree("""
-            {"id":"pay_teste%s","externalReference":"%s","value":99.95,"netValue":97.95,
+            {"id":"pay_teste_%s","externalReference":"%s","value":99.95,"netValue":97.95,
             "invoiceUrl":"https://sandbox.asaas.com/i/teste","status":"PENDING"}
             """.formatted(a.getArgument(0).toString().replace("-",""),a.getArgument(0).toString())));
     }
@@ -99,7 +99,7 @@ class PagamentoIntegrationTest {
         verify(gateway,times(1)).cobrar(anyString(),anyString(),anyString(),anyString(),any(),any());
         var p=pagamentos.findByPedidoId(c.pedido()).orElseThrow();assertEquals("RECONCILIAR",p.getEstado());
         when(gateway.consultar("/payments?externalReference="+p.getReferencia())).thenReturn(json.readTree("""
-            {"data":[{"id":"pay_recuperado","externalReference":"%s","value":99.95,"status":"PENDING"}]}
+            {"data":[{"id":"pay_recuperado-2026","externalReference":"%s","value":99.95,"status":"PENDING"}]}
             """.formatted(p.getReferencia())));
         mvc.perform(get("/pedidos/"+c.pedido()+"/pagamento").header("Authorization","Bearer "+c.cliente().token()))
             .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("AGUARDANDO_PAGAMENTO"));
@@ -121,5 +121,11 @@ class PagamentoIntegrationTest {
         mvc.perform(post("/pedidos/"+c.pedido()+"/pagamento").header("Authorization","Bearer "+c.cliente().token())
             .contentType(MediaType.APPLICATION_JSON).content("{\"cpf\":\"12345678909\"}")).andExpect(status().isConflict());
         assertEquals("RECONCILIAR",pagamentos.findByPedidoId(c.pedido()).orElseThrow().getEstado());
+    }
+    @Test void webhookRecusaIdentificadorQueAlteraOCaminhoDaConsulta() throws Exception {
+        mvc.perform(post("/webhooks/asaas").header("asaas-access-token","token-exclusivo-de-testes-sem-acesso-real")
+            .contentType(MediaType.APPLICATION_JSON).content("{\"payment\":{\"id\":\"pay_../outro-recurso\"}}"))
+            .andExpect(status().isOk());
+        verifyNoInteractions(gateway);
     }
 }
